@@ -1,0 +1,30 @@
+<app-default-login-layout
+    title="Entre na sua conta"
+    primaryBtnText="Entre"
+    secondaryBtnText="Registre-se"
+    (submit)="submit()"
+    (navigate)="navigate()"
+    [disablePrimaryBtn]="!loginForm.valid"
+>
+    <form [formGroup]="loginForm">
+        <app-primary-imput
+        formControlName="email"
+            inputName="email"
+            type="email"
+            label="Email"
+            placeholder="seuemail@gmail.com"
+        >
+            <img src=""/>
+        </app-primary-imput>
+        <app-primary-imput
+        formControlName="password"
+            formName="password"
+            type="password"
+            label="Senha"
+            placeholder="Sua senha"
+        >
+        <img src=""/>
+    </app-primary-imput>
+    <span>Esqueci a senha</span>
+    </form>
+</app-default-login-layout>

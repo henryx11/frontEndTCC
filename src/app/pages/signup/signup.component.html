@@ -1,0 +1,59 @@
+<app-default-login-layout
+    title="Registre-se e comece hoje!"
+    primaryBtnText="Registre-se"
+    secondaryBtnText="Login"
+    (submit)="submit()"
+    (navigate)="navigate()"
+    [disablePrimaryBtn]="!signupForm.valid"
+>
+    <form [formGroup]="signupForm">
+        <app-primary-imput
+        formControlName="name"
+            inputName="name"
+            type="text"
+            label="Seu nome"
+            placeholder="Jhon White"
+        >
+            <img src=""/>
+        </app-primary-imput>
+
+        <app-primary-imput
+        formControlName="email"
+            inputName="email"
+            type="email"
+            label="Email"
+            placeholder="seuemail@gmail.com"
+        >
+        </app-primary-imput>
+
+        <app-primary-imput
+        formControlName="number"
+            inputName="number"
+            type="tel"
+            label="Telefone"
+            placeholder="00 000000000"
+        >
+            <img src=""/>
+        </app-primary-imput>
+
+        <app-primary-imput
+        formControlName="password"
+            formName="password"
+            type="password"
+            label="Senha"
+            placeholder="Sua senha"
+        >
+        <img src=""/>
+    </app-primary-imput>
+
+    <app-primary-imput
+        formControlName="passwordConfirm"
+            formName="passwordConfirm"
+            type="password"
+            label="Senha"
+            placeholder="Confirme a sua senha"
+        >
+        <img src=""/>
+    </app-primary-imput>
+    </form>
+</app-default-login-layout>
