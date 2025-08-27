@@ -1,0 +1,41 @@
+<div class="sidebar">
+  <div class="logo-arrow">
+    <div class="logo">
+      <span class="logo-icon">🦝</span>
+      <span class="logo-text">Guaxicash</span>
+    </div>
+    <fa-icon [icon]="faArrowLeft" size="lg" class="arrow-left"/>
+  </div>
+  <nav class="menu">
+    <p class="section-title">Main</p>
+    <ul>
+      <li class="active">
+        <i class="icon">📊</i> Dashboard
+      </li>
+    </ul>
+
+    <p class="section-title">SYSTEM</p>
+    <ul>
+      <li><i class="icon">⚙️</i> Settings</li>
+      <li class="dark-mode">
+        <i class="icon">🌙</i> Dark mode
+        <label class="switch">
+          <!--<input type="checkbox" [(ngModel)]="darkMode" (change)="toggleDarkMode()" />-->
+          <span class="slider"></span>
+        </label>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="profile">
+    <img src="https://via.placeholder.com/40" alt="User" />
+    <div class="info">
+      <p class="name">User</p>
+      <p class="role">User Role</p>
+    </div>
+  </div>
+
+  <div class="logout">
+    <button>Log Out</button>
+  </div>
+</div>
