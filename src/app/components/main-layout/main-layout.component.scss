@@ -1,0 +1,9 @@
+.main-layout {
+  display: flex;
+
+  .content {
+    flex: 1;
+    background-color: #f9fafb;
+    min-height: 100vh;
+  }
+}

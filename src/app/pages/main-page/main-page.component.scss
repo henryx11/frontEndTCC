@@ -1,0 +1,44 @@
+.dashboard-container {
+  padding: 20px;
+  background-color: #f9fafb;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    .card {
+      background-color: #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .title {
+        font-size: 14px;
+        color: #374151;
+      }
+
+      .value {
+        font-size: 20px;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .content-box {
+    background-color: #e5e7eb;
+    border-radius: 8px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+    font-size: 16px;
+  }
+}
