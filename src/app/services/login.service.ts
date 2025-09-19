@@ -11,8 +11,8 @@ export class LoginService {
 
   constructor(private httpClient: HttpClient) { }
 
-  login(name: string, password: string){
-    return this.httpClient.post<LoginResponse>("/login", {name, password}).pipe(
+  login(email: string, password: string){
+    return this.httpClient.post<LoginResponse>("http://26.59.168.146:8090/users/login", {email, password}).pipe(
       tap((value) => {
         sessionStorage.setItem("auth-token", value.token)
       })
@@ -21,7 +21,7 @@ export class LoginService {
 
   //add a porta do backend certa aqui em baixo
   register(data: { name: string; email: string; number: string; password: string }) {
-    return this.httpClient.post('http://localhost:3000/register', data);
+    return this.httpClient.post('http://26.59.168.146:8090/register', data);
   }
 
    //getToken(){

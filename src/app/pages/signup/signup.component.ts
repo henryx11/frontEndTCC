@@ -50,17 +50,17 @@ export class SignupComponent {
       this.toastService.error("Preencha todos os campos corretamente.");
       return;
     }
-  
+
     if (this.signupForm.value.password !== this.signupForm.value.passwordConfirm) {
       this.toastService.error("As senhas não coincidem.");
       return;
     }
-  
+
     const { name, email, number, password } = this.signupForm.value;
 
     this.loginService.register({ name, email, number, password }).subscribe({
-      next: () => this.toastService.success("Cadastro realizado com sucesso!"),
-      error: () => this.toastService.error("Erro ao registrar. Tente novamente mais tarde.")
+      //next: (data) => this.toastService.success(data.message),
+      error: (data) => this.toastService.error(data?.error.message),
     });
   }
 
