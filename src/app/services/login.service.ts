@@ -21,7 +21,7 @@ export class LoginService {
 
   //add a porta do backend certa aqui em baixo
   register(data: { name: string; email: string; number: string; password: string }) {
-    return this.httpClient.post('http://26.59.168.146:8090/register', data);
+    return this.httpClient.post('http://26.59.168.146:8090/users/register', data);
   }
 
    //getToken(){

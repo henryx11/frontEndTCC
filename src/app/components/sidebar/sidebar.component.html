@@ -6,15 +6,19 @@
     </div>
     <fa-icon [icon]="faArrowLeft" size="lg" class="arrow-left"/>
   </div>
+
   <nav class="menu">
     <p class="section-title">Main</p>
     <ul>
-      <li class="active">
-        <i class="icon">📊</i> Dashboard
-      </li>
+      <li routerLink="/dashboard" routerLinkActive="active"><i class="icon">📊</i> Dashboard</li>
+      <li routerLink="/graficos" routerLinkActive="active"><i class="icon">📈</i> Gráficos</li>
+      <li routerLink="/cartoes" routerLinkActive="active"><i class="icon">💳</i> Cartões</li>
+      <li routerLink="/missoes" routerLinkActive="active"><i class="icon">🎯</i> Missões</li>
+      <li routerLink="/contas" routerLinkActive="active"><i class="icon">🏦</i> Contas</li>
+      <li routerLink="/transacoes" routerLinkActive="active"><i class="icon">💸</i> Transações</li>
     </ul>
 
-    <p class="section-title">SYSTEM</p>
+    <p class="section-title">System</p>
     <ul>
       <li><i class="icon">⚙️</i> Settings</li>
       <li class="dark-mode">
@@ -30,12 +34,12 @@
   <div class="profile">
     <img src="https://via.placeholder.com/40" alt="User" />
     <div class="info">
-      <p class="name">User</p>
-      <p class="role">User Role</p>
+      <p class="name">{{ userEmail || 'Usuário' }}</p>
+      <p class="role">Usuário logado</p>
     </div>
   </div>
 
   <div class="logout">
-    <button>Log Out</button>
+    <button (click)="logout()">Log Out</button>
   </div>
 </div>

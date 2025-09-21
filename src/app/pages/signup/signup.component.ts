@@ -59,12 +59,15 @@ export class SignupComponent {
     const { name, email, number, password } = this.signupForm.value;
 
     this.loginService.register({ name, email, number, password }).subscribe({
-      //next: (data) => this.toastService.success(data.message),
-      error: (data) => this.toastService.error(data?.error.message),
+      next: (data: any) => this.toastService.success(data.message),
+      error: (data: any) => this.toastService.error(data?.error?.message),
     });
+
+
+  }
+  navigate() {
+    this.router.navigate(['/login']);
   }
 
-  navigate(){
-    this.router.navigate(["login"])
-  }
+
 }

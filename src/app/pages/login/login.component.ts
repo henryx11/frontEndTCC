@@ -33,11 +33,20 @@ export class LoginComponent {
     })
   }
 
-  submit(){
-    this.loginService.login(this.loginForm.value.email, this.loginForm.value.password).subscribe({
-      next: () => this.toastService.success("Login feito com sucesso!"),
-      error: () => this.toastService.error("Erro inesperado! Tente novamente mais tarde.")
-    })
+  submit(): void {
+    this.loginService.login(
+      this.loginForm.value.email,
+      this.loginForm.value.password
+    ).subscribe({
+      next: (data: any) => {
+        this.toastService.success(data.message); // ✅ exibe toast
+        this.router.navigate(['/main-page']);    // ✅ redireciona
+      },
+      error: (data: any) => {
+        this.toastService.error(data?.error?.message);
+      }
+    });
+
   }
 
   navigate(){
