@@ -1,0 +1,12 @@
+<div class="container-contas">
+  <h2>Minhas Contas</h2>
+
+  <div *ngFor="let conta of contas" class="card-conta">
+    <div class="info">
+      <h3>{{ conta.nome }}</h3>
+      <p><strong>Banco:</strong> {{ conta.banco }}</p>
+      <p><strong>Tipo:</strong> {{ conta.tipo | titlecase }}</p>
+      <p><strong>Saldo Atual:</strong> R$ {{ conta.saldo | number:'1.2-2' }}</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+.container-contas {
+  padding: 2rem;
+
+  h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .card-conta {
+    background-color: #f7f7f7;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+    transition: 0.2s;
+
+    &:hover {
+      transform: scale(1.01);
+    }
+
+    .info p {
+      margin: 0.2rem 0;
+    }
+  }
+}

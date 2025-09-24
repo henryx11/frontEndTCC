@@ -1,14 +1,25 @@
-import { Component } from '@angular/core';
-import {UserService} from '../../services/user.service';
+import { Component, OnInit } from '@angular/core';
+// @ts-ignore
+import { ContasService } from 'src/app/services/contas.service';
 
 @Component({
   selector: 'app-main-page',
-  imports: [],
   templateUrl: './main-page.component.html',
-  styleUrl: './main-page.component.scss'
+  styleUrls: ['./main-page.component.scss']
 })
-export class MainPageComponent {
+export class MainPageComponent implements OnInit {
+  saldoTotal: number = 0;
 
-  constructor(private userService: UserService) {
+  constructor(private contasService: ContasService) {}
+
+  ngOnInit(): void {
+    this.contasService.getSaldoTotalDoUsuario().subscribe({
+      next: (saldo: number): void => {
+        this.saldoTotal = saldo;
+      },
+      error: (err: unknown): void => {
+        console.error('Erro ao buscar saldo total:', err);
+      }
+    });
   }
 }
