@@ -1,38 +1,36 @@
+// login.service.ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { LoginResponse } from '../types/login-response.type';
 import { tap } from 'rxjs';
-import { jwtDecode} from 'jwt-decode';
+import { UserService } from './user.service';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LoginService {
+  private readonly apiUrl = 'http://26.59.168.146:8090/users';
 
-  constructor(private httpClient: HttpClient) { }
+  constructor(
+    private httpClient: HttpClient,
+    private userService: UserService
+  ) {}
 
-  login(email: string, password: string){
-    return this.httpClient.post<LoginResponse>("http://26.59.168.146:8090/users/login", {email, password}).pipe(
-      tap((value) => {
-        sessionStorage.setItem("auth-token", value.token)
+  login(email: string, password: string) {
+    return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap((res) => {
+        this.userService.setToken(res.token); // DELEGA ao UserService
       })
-    )
+    );
   }
 
-  //add a porta do backend certa aqui em baixo
-  register(data: { name: string; email: string; number: string; password: string }) {
-    return this.httpClient.post('http://26.59.168.146:8090/users/register', data);
+  register(data: { name: string; email: string; number: string; password: string; role?: number }) {
+    // Se o backend exige "role" como 0, já preenche se não vier
+    if (data.role === undefined) {
+      data.role = 0;
+    }
+    return this.httpClient.post(`${this.apiUrl}/register`, data);
   }
 
-   //getToken(){
-   //   const token = sessionStorage.getItem("auth-token");
-   //   if (token != null) {
-   //     const decoded = jwtDecode(token);
-//
-   //     console.log(decoded);
-   //   }
-//
-   //}
-//
-   //getToken();
+  logout(): void {
+    this.userService.logout(); // DELEGA para centralizar
+  }
 }

@@ -12,16 +12,16 @@ import { jwtDecode } from 'jwt-decode';
 })
 export class SidebarComponent {
   faArrowLeft = faArrowLeft;
-  userEmail: string | null = null;
+  userName: string | null = null;
 
   constructor(private router: Router) {
     const token = sessionStorage.getItem('auth-token');
     if (token) {
       try {
-        const payload = jwtDecode<{ sub: string }>(token);
-        this.userEmail = payload.sub;
+        const payload = jwtDecode<{ name: string }>(token);
+        this.userName = payload.name;
       } catch {
-        this.userEmail = null;
+        this.userName = null;
       }
     }
   }
