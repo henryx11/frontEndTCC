@@ -1,0 +1,26 @@
+<div class="container">
+  <h2>Cartões:</h2>
+  <div class="cards">
+    <div class="card" (click)="selecionarCartao(1)">Cartão 1</div>
+    <div class="card" (click)="selecionarCartao(2)">Cartão 2</div>
+    <div class="card create-card" routerLink="/create-card">
+      + Criar Cartão
+    </div>
+  </div>
+
+  <!-- Balão da fatura que aparece quando um cartão é selecionado -->
+  <div class="fatura" *ngIf="cartaoSelecionado">
+    <h3>Fatura - {{ getNomeCartao() }}</h3>
+    <div class="fatura-info">
+      <p><strong>Valor da Fatura:</strong> {{ getFaturaAtual() }}</p>
+      <p><strong>Data de Vencimento:</strong> {{ getDataVencimento() }}</p>
+      <p><strong>Limite Disponível:</strong> {{ getLimiteDisponivel() }}</p>
+      <p><strong>Status:</strong> {{ getStatusFatura() }}</p>
+    </div>
+    <div class="fatura-actions">
+      <button class="btn-pagar" (click)="pagarFatura()">Pagar Fatura</button>
+      <button class="btn-detalhes" (click)="verDetalhes()">Ver Detalhes</button>
+      <button class="btn-fechar" (click)="fecharFatura()">✕</button>
+    </div>
+  </div>
+</div>

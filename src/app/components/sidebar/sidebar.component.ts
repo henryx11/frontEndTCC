@@ -26,6 +26,14 @@ export class SidebarComponent {
     }
   }
 
+  goToDashboard() {
+    this.router.navigate(['/main-page']);
+  }
+
+  goToCreditCard() {
+    this.router.navigate(['/credit-card']);
+  }
+
   logout() {
     sessionStorage.removeItem('auth-token');
     this.router.navigate(['/auth/login']);

@@ -1,0 +1,168 @@
+.container {
+  height: 100vh;
+  width: 100%;
+  padding: 40px;
+  box-sizing: border-box;
+
+  h2 {
+    margin-bottom: 20px;
+    font-size: 22px;
+    color: #1e3a8a;
+  }
+
+  .cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 25px;
+  }
+
+  .card {
+    width: 200px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2563eb;
+    color: white;
+    font-size: 18px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  .create-card {
+    background-color: #ffffff;
+    color: #1e3a8a;
+    font-weight: bold;
+    border: 2px solid #1e3a8a;
+  }
+
+  /* Estilo do balão de fatura */
+  .fatura {
+    margin-top: 40px;
+    width: 70%;
+    padding: 20px;
+    border: 2px solid #1e3a8a;
+    border-radius: 12px;
+    background-color: #f3f4f6; /* Cinza claro como solicitado */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+    animation: slideDown 0.3s ease-out;
+
+    h3 {
+      margin: 0 0 15px 0;
+      color: #1e3a8a;
+      font-size: 18px;
+    }
+
+    .fatura-info {
+      margin-bottom: 20px;
+
+      p {
+        margin: 8px 0;
+        color: #374151;
+        font-size: 14px;
+
+        strong {
+          color: #1e3a8a;
+        }
+      }
+    }
+
+    .fatura-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+
+      .btn-pagar {
+        background-color: #10b981;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #059669;
+        }
+      }
+
+      .btn-detalhes {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+
+      .btn-fechar {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: auto;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: #dc2626;
+        }
+      }
+    }
+
+    /* Triângulo apontando para cima */
+    &::before {
+      content: "";
+      position: absolute;
+      top: -15px;
+      left: 30px;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 15px solid #f3f4f6;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      top: -18px;
+      left: 29px;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 16px solid #1e3a8a;
+      z-index: -1;
+    }
+  }
+}
+
+/* Animação para o balão aparecer */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
