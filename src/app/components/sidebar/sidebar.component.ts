@@ -26,6 +26,10 @@ export class SidebarComponent {
     }
   }
 
+  goToCreateAccount() {
+    this.router.navigate(['/create-account']);
+  }
+
   goToDashboard() {
     this.router.navigate(['/main-page']);
   }
