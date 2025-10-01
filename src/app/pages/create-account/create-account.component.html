@@ -34,11 +34,8 @@
           id="bank"
           formControlName="bank"
           class="form-select"
-          [disabled]="isLoadingData"
         >
-          <option value="">
-            {{ isLoadingData ? 'Carregando bancos...' : 'Selecione um banco' }}
-          </option>
+          <option value="">Selecione um banco</option>
           <option *ngFor="let bank of banks" [value]="bank.uuid">
             {{ bank.name }}
           </option>
@@ -52,11 +49,8 @@
           id="accountType"
           formControlName="accountType"
           class="form-select"
-          [disabled]="isLoadingData"
         >
-          <option value="">
-            {{ isLoadingData ? 'Carregando tipos...' : 'Selecione um tipo' }}
-          </option>
+          <option value="">Selecione um tipo</option>
           <option *ngFor="let type of accountTypes" [value]="type.uuid">
             {{ type.name }}
           </option>

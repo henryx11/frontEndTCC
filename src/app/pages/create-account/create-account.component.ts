@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { BankService } from '../../services/bank.service';
 import { Bank } from '../../types/bank.type';
 import { AccountType } from '../../types/account-type.type';
 
@@ -16,15 +15,23 @@ import { AccountType } from '../../types/account-type.type';
 })
 export class CreateAccountComponent implements OnInit {
   accountForm: FormGroup;
-  banks: Bank[] = [];
-  accountTypes: AccountType[] = [];
   isLoading = false;
-  isLoadingData = true;
+
+  // Dados fixos enquanto backend não tem endpoints de listagem
+  banks: Bank[] = [
+    { uuid: '745b93d3-021b-470b-abe5-8b704a7ca112', name: 'Itaú' },
+    { uuid: '21bf2e8e-77b7-4faa-a515-c805269f2c1c', name: 'Nubank' },
+    { uuid: 'cc262119-d1fa-4656-b920-a63a500d3871', name: 'Santander' }
+  ];
+
+  accountTypes: AccountType[] = [
+    { uuid: '24eb36ef-4b85-4471-8a28-f122f2a5d902', name: 'Corrente' },
+    { uuid: '260747d0-6aa2-4670-b0d8-e18911d8d043', name: 'Poupança' },
+  ];
 
   constructor(
     private formBuilder: FormBuilder,
     private accountService: AccountService,
-    private bankService: BankService,
     private router: Router
   ) {
     this.accountForm = this.formBuilder.group({
@@ -36,33 +43,7 @@ export class CreateAccountComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadBanksAndTypes();
-  }
-
-  loadBanksAndTypes(): void {
-    this.isLoadingData = true;
-
-    // Buscar bancos do backend
-    this.bankService.getAllBanks().subscribe({
-      next: (banks) => {
-        this.banks = banks;
-        this.isLoadingData = false;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar bancos:', error);
-        this.isLoadingData = false;
-      }
-    });
-
-    // Buscar tipos de conta do backend
-    this.bankService.getAllAccountTypes().subscribe({
-      next: (types) => {
-        this.accountTypes = types;
-      },
-      error: (error) => {
-        console.error('Erro ao carregar tipos de conta:', error);
-      }
-    });
+    // Nada a carregar, dados já estão fixos
   }
 
   onSubmit(): void {
