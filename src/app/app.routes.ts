@@ -16,7 +16,6 @@ export const routes: Routes = [
     children: [
       { path: 'login', component: LoginComponent },
       { path: 'signup', component: SignupComponent },
-      { path: 'create-bank-account', component: CreateBankAccountComponent },
       { path: 'create-card', component: CreateCardComponent }
     ]
   },
