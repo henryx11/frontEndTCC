@@ -1,26 +1,113 @@
 <div class="container">
-  <h2>Cartões:</h2>
-  <div class="cards">
-    <div class="card" (click)="selecionarCartao(1)">Cartão 1</div>
-    <div class="card" (click)="selecionarCartao(2)">Cartão 2</div>
+  <div class="header">
+    <h2>Cartões:</h2>
+    <button class="btn-reload" (click)="recarregarDados()" [disabled]="loading">
+      <span *ngIf="loading">🔄</span>
+      <span *ngIf="!loading">↻</span>
+      {{ loading ? 'Carregando...' : 'Atualizar' }}
+    </button>
+  </div>
+
+  <div class="cards" *ngIf="!loading">
+    <div class="card"
+         *ngFor="let cartao of cartoes"
+         (click)="selecionarCartao(cartao.id)"
+         [class.selected]="cartaoSelecionado === cartao.id">
+      <div class="card-content">
+        <h4>{{ cartao.description }}</h4>
+        <p class="card-bandeira">{{ cartao.flags.name | titlecase }}</p>
+        <p class="card-limite">Limite: R$ {{ cartao.limite | number:'1.2-2' }}</p>
+      </div>
+    </div>
     <div class="card create-card" routerLink="/create-card">
-      + Criar Cartão
+      <div class="card-content">
+        <span class="plus-icon">+</span>
+        <span>Criar Cartão</span>
+      </div>
     </div>
   </div>
 
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Carregando cartões...</p>
+  </div>
+
   <!-- Balão da fatura que aparece quando um cartão é selecionado -->
-  <div class="fatura" *ngIf="cartaoSelecionado">
-    <h3>Fatura - {{ getNomeCartao() }}</h3>
-    <div class="fatura-info">
-      <p><strong>Valor da Fatura:</strong> {{ getFaturaAtual() }}</p>
-      <p><strong>Data de Vencimento:</strong> {{ getDataVencimento() }}</p>
-      <p><strong>Limite Disponível:</strong> {{ getLimiteDisponivel() }}</p>
-      <p><strong>Status:</strong> {{ getStatusFatura() }}</p>
+  <div class="fatura" *ngIf="cartaoSelecionado && getFaturaAtual()">
+    <!-- Header da fatura com navegação -->
+    <div class="fatura-header">
+      <button
+        class="nav-arrow nav-arrow-left"
+        (click)="faturaAnterior()"
+        [disabled]="!podeVoltar()"
+        [class.disabled]="!podeVoltar()">
+        &#8249;
+      </button>
+
+      <div class="fatura-title">
+        <h3>{{ getNomeCartao() }}</h3>
+        <p class="fatura-periodo">{{ getMesAnoFatura() }}</p>
+      </div>
+
+      <button
+        class="nav-arrow nav-arrow-right"
+        (click)="proximaFatura()"
+        [disabled]="!podeAvancar()"
+        [class.disabled]="!podeAvancar()">
+        &#8250;
+      </button>
     </div>
+
+    <!-- Informações da fatura -->
+    <div class="fatura-info">
+      <div class="fatura-item">
+        <span class="label">Valor da Fatura:</span>
+        <span class="value" [class]="getStatusFatura().toLowerCase().replace(' ', '-')">
+          {{ getFaturaValor() }}
+        </span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Data de Vencimento:</span>
+        <span class="value">{{ getDataVencimento() }}</span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Limite Disponível:</span>
+        <span class="value limite">{{ getLimiteDisponivel() }}</span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Status:</span>
+        <span class="value status" [class]="getStatusFatura().toLowerCase().replace(' ', '-')">
+          {{ getStatusFatura() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Indicador de navegação (pontos) -->
+    <div class="fatura-indicator" *ngIf="getCartaoSelecionado()">
+      <span
+        *ngFor="let fatura of getCartaoSelecionado()!.faturas; let i = index"
+        class="indicator-dot"
+        [class.active]="i === faturaAtualIndex"
+        (click)="faturaAtualIndex = i">
+      </span>
+    </div>
+
+    <!-- Ações da fatura -->
     <div class="fatura-actions">
-      <button class="btn-pagar" (click)="pagarFatura()">Pagar Fatura</button>
-      <button class="btn-detalhes" (click)="verDetalhes()">Ver Detalhes</button>
-      <button class="btn-fechar" (click)="fecharFatura()">✕</button>
+      <button
+        class="btn-pagar">
+      </button>
+
+      <button class="btn-detalhes">
+        Ver Detalhes
+      </button>
+
+      <button class="btn-fechar" (click)="fecharFatura()">
+        ✕
+      </button>
     </div>
   </div>
 </div>
