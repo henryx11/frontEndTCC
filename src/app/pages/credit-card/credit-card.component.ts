@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { CreditCardService, CartaoData, Fatura } from '../../services/credit-card.service';
 import { ToastrService } from 'ngx-toastr';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-credit-card',
@@ -12,8 +13,8 @@ import { ToastrService } from 'ngx-toastr';
 })
 export class CreditCardComponent implements OnInit {
   cartoes: CartaoData[] = [];
-  cartaoSelecionado: number | null = null;
-  faturaAtualIndex: number = 0; // Índice da fatura atual sendo exibida
+  cartaoSelecionado: string | null = null;
+  faturaAtualIndex: number = 0;
   loading: boolean = false;
 
   constructor(
@@ -27,122 +28,57 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
-   * Carrega todos os cartões do usuário
+   * Carrega todos os cartões do usuário e suas faturas
    */
   carregarCartoes(): void {
     this.loading = true;
     this.creditCardService.getCartoes().subscribe({
       next: (cartoes: CartaoData[]) => {
-        this.cartoes = cartoes;
-        this.loading = false;
+        if (cartoes.length === 0) {
+          this.cartoes = [];
+          this.loading = false;
+          return;
+        }
+
+        // Para cada cartão, busca suas faturas
+        const faturaRequests = cartoes.map(cartao =>
+          this.creditCardService.getFaturasPorCartao(cartao.uuid)
+        );
+
+        forkJoin(faturaRequests).subscribe({
+          next: (todasFaturas: Fatura[][]) => {
+            // Atribui as faturas a cada cartão
+            this.cartoes = cartoes.map((cartao, index) => ({
+              ...cartao,
+              faturas: todasFaturas[index] || []
+            }));
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Erro ao carregar faturas:', error);
+            this.toastr.error('Erro ao carregar faturas dos cartões');
+            this.cartoes = cartoes.map(cartao => ({ ...cartao, faturas: [] }));
+            this.loading = false;
+          }
+        });
       },
       error: (error) => {
         console.error('Erro ao carregar cartões:', error);
         this.toastr.error('Erro ao carregar cartões');
         this.loading = false;
-        // Fallback para dados mock em caso de erro
-        //this.carregarDadosMock();
       }
     });
   }
 
   /**
-   * Dados mock para desenvolvimento/fallback
-   */
-//  private carregarDadosMock(): void {
-//    this.cartoes = [
-//      {
-//        id: 1,
-//        nome: 'Cartão Nubank',
-//        description: 'Cartão Nubank',
-//        flags: 'mastercard',
-//        limite: 4000,
-//        faturas: [
-//          {
-//            id: 1,
-//            mes: 'Janeiro',
-//            ano: 2025,
-//            valor: 'R$ 1.250,00',
-//            vencimento: '15/01/2025',
-//            status: 'Em aberto',
-//            limiteDisponivel: 'R$ 2.750,00',
-//            cartaoId: 1
-//          },
-//          {
-//            id: 2,
-//            mes: 'Fevereiro',
-//            ano: 2025,
-//            valor: 'R$ 890,50',
-//            vencimento: '15/02/2025',
-//            status: 'Em aberto',
-//            limiteDisponivel: 'R$ 3.109,50',
-//            cartaoId: 1
-//          },
-//          {
-//            id: 3,
-//            mes: 'Março',
-//            ano: 2025,
-//            valor: 'R$ 1.150,75',
-//            vencimento: '15/03/2025',
-//            status: 'Em aberto',
-//            limiteDisponivel: 'R$ 2.849,25',
-//            cartaoId: 1
-//          }
-//        ]
-//      },
-//      {
-//        id: 2,
-//        nome: 'Cartão Itaú',
-//        description: 'Cartão Itaú',
-//        flags: 'visa',
-//        limite: 5000,
-//        faturas: [
-//          {
-//            id: 4,
-//            mes: 'Janeiro',
-//            ano: 2025,
-//            valor: 'R$ 2.100,00',
-//            vencimento: '20/01/2025',
-//            status: 'Pago',
-//            limiteDisponivel: 'R$ 2.900,00',
-//            cartaoId: 2
-//          },
-//          {
-//            id: 5,
-//            mes: 'Fevereiro',
-//            ano: 2025,
-//            valor: 'R$ 1.750,30',
-//            vencimento: '20/02/2025',
-//            status: 'Em aberto',
-//            limiteDisponivel: 'R$ 3.249,70',
-//            cartaoId: 2
-//          },
-//          {
-//            id: 6,
-//            mes: 'Março',
-//            ano: 2025,
-//            valor: 'R$ 950,00',
-//            vencimento: '20/03/2025',
-//            status: 'Em aberto',
-//            limiteDisponivel: 'R$ 4.050,00',
-//            cartaoId: 2
-//          }
-//        ]
-//      }
-//    ];
-//  }AtualIndex: number = 0; // Índice da fatura atual sendo exibida
-
-  /**
    * Seleciona um cartão e mostra sua primeira fatura
    */
-  selecionarCartao(numeroCartao: number): void {
-    if (this.cartaoSelecionado === numeroCartao) {
-      // Se clicar no mesmo cartão, fecha a fatura
+  selecionarCartao(cartaoUuid: string): void {
+    if (this.cartaoSelecionado === cartaoUuid) {
       this.cartaoSelecionado = null;
       this.faturaAtualIndex = 0;
     } else {
-      // Seleciona o novo cartão e reseta para a primeira fatura
-      this.cartaoSelecionado = numeroCartao;
+      this.cartaoSelecionado = cartaoUuid;
       this.faturaAtualIndex = 0;
     }
   }
@@ -152,7 +88,7 @@ export class CreditCardComponent implements OnInit {
    */
   getCartaoSelecionado(): CartaoData | null {
     if (this.cartaoSelecionado) {
-      return this.cartoes.find(cartao => cartao.id === this.cartaoSelecionado) || null;
+      return this.cartoes.find(cartao => cartao.uuid === this.cartaoSelecionado) || null;
     }
     return null;
   }
@@ -162,7 +98,7 @@ export class CreditCardComponent implements OnInit {
    */
   getFaturaAtual(): Fatura | null {
     const cartao = this.getCartaoSelecionado();
-    if (cartao && cartao.faturas.length > 0) {
+    if (cartao && cartao.faturas && cartao.faturas.length > 0) {
       return cartao.faturas[this.faturaAtualIndex] || null;
     }
     return null;
@@ -183,7 +119,7 @@ export class CreditCardComponent implements OnInit {
    */
   proximaFatura(): void {
     const cartao = this.getCartaoSelecionado();
-    if (cartao && this.faturaAtualIndex < cartao.faturas.length - 1) {
+    if (cartao && cartao.faturas && this.faturaAtualIndex < cartao.faturas.length - 1) {
       this.faturaAtualIndex++;
     }
   }
@@ -200,11 +136,11 @@ export class CreditCardComponent implements OnInit {
    */
   podeAvancar(): boolean {
     const cartao = this.getCartaoSelecionado();
-    return cartao ? this.faturaAtualIndex < cartao.faturas.length - 1 : false;
+    return cartao && cartao.faturas ? this.faturaAtualIndex < cartao.faturas.length - 1 : false;
   }
 
   /**
-   * Retorna o nome do cartão selecionado
+   * Retorna o nome/descrição do cartão selecionado
    */
   getNomeCartao(): string {
     const cartao = this.getCartaoSelecionado();
@@ -212,11 +148,11 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
-   * Retorna o valor da fatura atual
+   * Retorna o valor da fatura atual formatado
    */
   getFaturaValor(): string {
     const fatura = this.getFaturaAtual();
-    return fatura ? fatura.valor : '';
+    return fatura ? this.creditCardService.formatarMoeda(fatura.valor) : '';
   }
 
   /**
@@ -228,11 +164,11 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
-   * Retorna o limite disponível da fatura atual
+   * Retorna o limite disponível da fatura atual formatado
    */
   getLimiteDisponivel(): string {
     const fatura = this.getFaturaAtual();
-    return fatura ? fatura.limiteDisponivel : '';
+    return fatura ? this.creditCardService.formatarMoeda(fatura.limiteDisponivel) : '';
   }
 
   /**
@@ -252,6 +188,22 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
+   * Retorna a data de fechamento da fatura atual
+   */
+  getDataFechamento(): string {
+    const fatura = this.getFaturaAtual();
+    return fatura ? fatura.dataFechamento : '';
+  }
+
+  /**
+   * Retorna o valor já pago da fatura
+   */
+  getValorPago(): string {
+    const fatura = this.getFaturaAtual();
+    return fatura ? this.creditCardService.formatarMoeda(fatura.valorPago) : '';
+  }
+
+  /**
    * Fecha o balão da fatura
    */
   fecharFatura(): void {
@@ -260,28 +212,44 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
+   * Funcionalidade para pagar fatura
+   */
+  pagarFatura(): void {
+    const fatura = this.getFaturaAtual();
+    if (fatura && fatura.status !== 'Pago') {
+      this.loading = true;
+      this.creditCardService.pagarFatura(fatura.uuid).subscribe({
+        next: (faturaAtualizada) => {
+          this.toastr.success('Fatura paga com sucesso!');
+          if (fatura) {
+            fatura.status = 'Pago';
+          }
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Erro ao pagar fatura:', error);
+          this.toastr.error('Erro ao processar pagamento');
+          this.loading = false;
+        }
+      });
+    }
+  }
+
+  /**
+   * Funcionalidade para ver detalhes da fatura
+   */
+  verDetalhes(): void {
+    const fatura = this.getFaturaAtual();
+    if (fatura) {
+      this.toastr.info('Tela de detalhes em desenvolvimento');
+      // this.router.navigate(['/detalhes-fatura', fatura.uuid]);
+    }
+  }
+
+  /**
    * Recarrega os dados dos cartões
    */
   recarregarDados(): void {
     this.carregarCartoes();
   }
-
-  // Método para futuras funcionalidades
-  // editarCartao(cartaoId: number): void {
-  //   this.router.navigate(['/edit-card', cartaoId]);
-  // }
-
-  // deletarCartao(cartaoId: number): void {
-  //   if (confirm('Tem certeza que deseja excluir este cartão?')) {
-  //     this.creditCardService.deletarCartao(cartaoId).subscribe({
-  //       next: () => {
-  //         this.toastr.success('Cartão excluído com sucesso!');
-  //         this.carregarCartoes();
-  //       },
-  //       error: (error) => {
-  //         this.toastr.error('Erro ao excluir cartão');
-  //       }
-  //     });
-  //   }
-  // }
 }
