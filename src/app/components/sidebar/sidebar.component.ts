@@ -26,6 +26,10 @@ export class SidebarComponent {
     }
   }
 
+  goToAccounts() {  // ADICIONE ESTE MÉTODO
+    this.router.navigate(['/accounts-list']);
+  }
+
   goToCreateAccount() {
     this.router.navigate(['/create-account']);
   }

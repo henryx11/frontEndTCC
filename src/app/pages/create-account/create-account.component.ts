@@ -17,16 +17,15 @@ export class CreateAccountComponent implements OnInit {
   accountForm: FormGroup;
   isLoading = false;
 
-  // Dados fixos enquanto backend não tem endpoints de listagem
   banks: Bank[] = [
-    { uuid: '745b93d3-021b-470b-abe5-8b704a7ca112', name: 'Itaú' },
     { uuid: '21bf2e8e-77b7-4faa-a515-c805269f2c1c', name: 'Nubank' },
+    { uuid: '745b93d3-021b-470b-abe5-8b704a7ca112', name: 'Itau' },
     { uuid: 'cc262119-d1fa-4656-b920-a63a500d3871', name: 'Santander' }
   ];
 
   accountTypes: AccountType[] = [
-    { uuid: '24eb36ef-4b85-4471-8a28-f122f2a5d902', name: 'Corrente' },
-    { uuid: '260747d0-6aa2-4670-b0d8-e18911d8d043', name: 'Poupança' },
+    { uuid: '24eb36ef-4b85-4471-8a28-f122f2a5d902', name: 'Conta Corrente' },
+    { uuid: '260747d0-6aa2-4670-b0d8-e18911d8d043', name: 'Poupança' }
   ];
 
   constructor(
@@ -35,15 +34,14 @@ export class CreateAccountComponent implements OnInit {
     private router: Router
   ) {
     this.accountForm = this.formBuilder.group({
-      accountName: ['', Validators.required],
-      currentBalance: ['', Validators.required],
+      accountName: ['', [Validators.required, Validators.minLength(2)]],
+      currentBalance: ['', [Validators.required, Validators.min(0)]],
       bank: ['', Validators.required],
       accountType: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
-    // Nada a carregar, dados já estão fixos
   }
 
   onSubmit(): void {
@@ -69,6 +67,14 @@ export class CreateAccountComponent implements OnInit {
           this.isLoading = false;
         }
       });
+    }
+  }
+
+  onCancel(): void {
+    const confirmacao = confirm('Tem certeza que deseja cancelar? Os dados não serão salvos.');
+
+    if (confirmacao) {
+      this.router.navigate(['/main-page']);
     }
   }
 }

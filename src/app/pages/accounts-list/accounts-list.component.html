@@ -1,0 +1,80 @@
+<div class="container">
+  <div class="header">
+    <h2>Contas:</h2>
+    <button class="btn-reload" (click)="recarregarDados()" [disabled]="loading">
+      <span *ngIf="loading">🔄</span>
+      <span *ngIf="!loading">↻</span>
+      {{ loading ? 'Carregando...' : 'Atualizar' }}
+    </button>
+  </div>
+
+  <div class="cards" *ngIf="!loading">
+    <div class="card"
+         *ngFor="let conta of contas"
+         (click)="selecionarConta(conta.id)"
+         [class.selected]="contaSelecionada === conta.id">
+      <div class="card-content">
+        <h4>{{ conta.name }}</h4>
+        <p class="card-banco">{{ conta.bank?.name }}</p>
+        <p class="card-saldo">Saldo: R$ {{ conta.balance | number:'1.2-2' }}</p>
+      </div>
+    </div>
+    <div class="card create-card" routerLink="/create-account">
+      <div class="card-content">
+        <span class="plus-icon">+</span>
+        <span>Criar Conta</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Carregando contas...</p>
+  </div>
+
+  <!-- Detalhes da conta selecionada -->
+  <div class="fatura" *ngIf="contaSelecionada && getContaSelecionada()">
+    <div class="fatura-header">
+      <div class="fatura-title">
+        <h3>{{ getContaSelecionada()?.name }}</h3>
+        <p class="fatura-periodo">{{ getContaSelecionada()?.type?.name }}</p>
+      </div>
+    </div>
+
+    <div class="fatura-info">
+      <div class="fatura-item">
+        <span class="label">Banco:</span>
+        <span class="value">{{ getContaSelecionada()?.bank?.name }}</span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Tipo de Conta:</span>
+        <span class="value">{{ getContaSelecionada()?.type?.name }}</span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Saldo Atual:</span>
+        <span class="value limite">R$ {{ getContaSelecionada()?.balance | number:'1.2-2' }}</span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Criada em:</span>
+        <span class="value">{{ getContaSelecionada()?.createdAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+    </div>
+
+    <div class="fatura-actions">
+      <button class="btn-pagar">
+        Nova Transação
+      </button>
+
+      <button class="btn-detalhes">
+        Ver Extrato
+      </button>
+
+      <button class="btn-fechar" (click)="fecharDetalhes()">
+        ✕
+      </button>
+    </div>
+  </div>
+</div>

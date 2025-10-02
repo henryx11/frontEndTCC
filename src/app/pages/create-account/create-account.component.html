@@ -1,72 +1,60 @@
-<div class="create-account-container">
-  <div class="create-account-card">
-    <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="account-form">
+<div class="container">
+  <h1>Criar Conta</h1>
+  <form [formGroup]="accountForm" (ngSubmit)="onSubmit()" class="create-card">
+    <div class="form-group">
+      <label for="accountName">Descrição</label>
+      <input
+        type="text"
+        id="accountName"
+        formControlName="accountName"
+        placeholder="Nome da conta"
+      />
+    </div>
 
-      <!-- Nome da Conta -->
-      <div class="form-group">
-        <label for="accountName" class="form-label">Nome Conta</label>
-        <input
-          id="accountName"
-          type="text"
-          formControlName="accountName"
-          class="form-input"
-          placeholder="Digite o nome da conta"
-        >
-      </div>
+    <div class="form-group">
+      <label for="currentBalance">Saldo Atual</label>
+      <input
+        type="number"
+        id="currentBalance"
+        step="0.01"
+        formControlName="currentBalance"
+        placeholder="0,00"
+      />
+    </div>
 
-      <!-- Saldo Atual -->
-      <div class="form-group">
-        <label for="currentBalance" class="form-label">Saldo Atual</label>
-        <input
-          id="currentBalance"
-          type="number"
-          step="0.01"
-          formControlName="currentBalance"
-          class="form-input"
-          placeholder="0,00"
-        >
-      </div>
+    <div class="form-group">
+      <label for="bank">Banco</label>
+      <select id="bank" formControlName="bank">
+        <option value="">Selecione um banco</option>
+        <option *ngFor="let bank of banks" [value]="bank.uuid">
+          {{ bank.name }}
+        </option>
+      </select>
+    </div>
 
-      <!-- Banco -->
-      <div class="form-group">
-        <label for="bank" class="form-label">Banco</label>
-        <select
-          id="bank"
-          formControlName="bank"
-          class="form-select"
-        >
-          <option value="">Selecione um banco</option>
-          <option *ngFor="let bank of banks" [value]="bank.uuid">
-            {{ bank.name }}
-          </option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label for="accountType">Tipo de Conta</label>
+      <select id="accountType" formControlName="accountType">
+        <option value="">Selecione um tipo</option>
+        <option *ngFor="let type of accountTypes" [value]="type.uuid">
+          {{ type.name }}
+        </option>
+      </select>
+    </div>
 
-      <!-- Tipo de Conta -->
-      <div class="form-group">
-        <label for="accountType" class="form-label">Tipo de Conta</label>
-        <select
-          id="accountType"
-          formControlName="accountType"
-          class="form-select"
-        >
-          <option value="">Selecione um tipo</option>
-          <option *ngFor="let type of accountTypes" [value]="type.uuid">
-            {{ type.name }}
-          </option>
-        </select>
-      </div>
+    <div class="form-actions">
+      <button type="submit" class="btn-create" [disabled]="isLoading || accountForm.invalid">
+        Criar Conta
+      </button>
+      <button type="button" class="btn-edit" [disabled]="isLoading">
+        Editar Conta
+      </button>
+    </div>
 
-      <!-- Botão -->
-      <div class="form-actions">
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="isLoading || accountForm.invalid"
-        >
-          {{ isLoading ? 'Criando...' : 'Criar Conta' }}
-        </button>
-      </div>
-    </form>
-  </div>
+    <div class="form-actions-secondary">
+      <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isLoading">
+        Cancelar
+      </button>
+    </div>
+  </form>
 </div>
