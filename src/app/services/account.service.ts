@@ -28,6 +28,6 @@ export class AccountService {
   }
 
   getUserAccounts(): Observable<Account[]> {
-    return this.httpClient.get<Account[]>(`${this.apiUrl}/user`);
+    return this.httpClient.get<Account[]>(`${this.apiUrl}`);
   }
 }

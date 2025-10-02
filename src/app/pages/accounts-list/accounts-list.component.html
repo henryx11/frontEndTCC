@@ -8,24 +8,25 @@
     </button>
   </div>
 
-  <div class="cards" *ngIf="!loading">
+  <div class="cards" *ngIf="!loading">  <!-- ✅ ADICIONE ESTA LINHA -->
     <div class="card"
          *ngFor="let conta of contas"
-         (click)="selecionarConta(conta.id)"
-         [class.selected]="contaSelecionada === conta.id">
+         (click)="selecionarConta(conta.uuid)"
+         [class.selected]="contaSelecionada === conta.uuid">
       <div class="card-content">
         <h4>{{ conta.name }}</h4>
         <p class="card-banco">{{ conta.bank?.name }}</p>
         <p class="card-saldo">Saldo: R$ {{ conta.balance | number:'1.2-2' }}</p>
       </div>
     </div>
+
     <div class="card create-card" routerLink="/create-account">
       <div class="card-content">
         <span class="plus-icon">+</span>
         <span>Criar Conta</span>
       </div>
     </div>
-  </div>
+  </div>  <!-- ✅ FECHE A DIV .cards AQUI -->
 
   <div class="loading-state" *ngIf="loading">
     <div class="spinner"></div>
@@ -37,7 +38,7 @@
     <div class="fatura-header">
       <div class="fatura-title">
         <h3>{{ getContaSelecionada()?.name }}</h3>
-        <p class="fatura-periodo">{{ getContaSelecionada()?.type?.name }}</p>
+        <p class="fatura-periodo">{{ getContaSelecionada()?.bank?.name }}</p>
       </div>
     </div>
 
@@ -49,7 +50,7 @@
 
       <div class="fatura-item">
         <span class="label">Tipo de Conta:</span>
-        <span class="value">{{ getContaSelecionada()?.type?.name }}</span>
+        <span class="value">{{ getContaSelecionada()?.type?.description  }}</span>
       </div>
 
       <div class="fatura-item">
@@ -57,10 +58,6 @@
         <span class="value limite">R$ {{ getContaSelecionada()?.balance | number:'1.2-2' }}</span>
       </div>
 
-      <div class="fatura-item">
-        <span class="label">Criada em:</span>
-        <span class="value">{{ getContaSelecionada()?.createdAt | date:'dd/MM/yyyy' }}</span>
-      </div>
     </div>
 
     <div class="fatura-actions">
@@ -68,12 +65,12 @@
         Nova Transação
       </button>
 
-      <button class="btn-detalhes">
+      <button class="btn-detalhes" (click)="verExtrato()">
         Ver Extrato
       </button>
 
+
       <button class="btn-fechar" (click)="fecharDetalhes()">
-        ✕
       </button>
     </div>
   </div>

@@ -1,5 +1,5 @@
 export interface Account {
-  id: string;
+  uuid: string;  // Mudou de id para uuid
   userId: string;
   name: string;
   balance: number;
@@ -9,7 +9,7 @@ export interface Account {
   };
   type: {
     uuid: string;
-    name: string;
+    description: string;
   };
   createdAt: Date;
   updatedAt: Date;

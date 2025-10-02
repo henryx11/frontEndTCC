@@ -50,12 +50,13 @@ export class AccountsListComponent implements OnInit {
    */
   selecionarConta(contaId: string): void {
     if (this.contaSelecionada === contaId) {
-      // Se clicar na mesma conta, fecha os detalhes
       this.contaSelecionada = null;
     } else {
-      // Seleciona a nova conta
       this.contaSelecionada = contaId;
     }
+
+    console.log('Nova conta selecionada:', this.contaSelecionada); // DEBUG
+    console.log('Conta encontrada:', this.getContaSelecionada()); // DEBUG
   }
 
   /**
@@ -63,7 +64,7 @@ export class AccountsListComponent implements OnInit {
    */
   getContaSelecionada(): Account | null {
     if (this.contaSelecionada) {
-      return this.contas.find(conta => conta.id === this.contaSelecionada) || null;
+      return this.contas.find(conta => conta.uuid === this.contaSelecionada) || null;
     }
     return null;
   }
@@ -80,5 +81,32 @@ export class AccountsListComponent implements OnInit {
    */
   recarregarDados(): void {
     this.carregarContas();
+  }
+
+  /**
+   * Abre tela de nova transação
+   */
+  novaTransacao(): void {
+    const conta = this.getContaSelecionada();
+    if (conta) {
+      this.toastr.info('Funcionalidade em desenvolvimento');
+      // this.router.navigate(['/nova-transacao', conta.id]);
+    }
+  }
+
+  /**
+   * Abre tela de extrato
+   */
+  /**
+   * Abre tela de extrato
+   */
+  /**
+   * Abre tela de extrato
+   */
+  verExtrato(): void {
+    const conta = this.getContaSelecionada();
+    if (conta) {
+      this.router.navigate(['/account-statement', conta.uuid]);
+    }
   }
 }

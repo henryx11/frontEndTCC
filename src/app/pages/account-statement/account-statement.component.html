@@ -1,0 +1,63 @@
+<div class="container">
+  <div class="header">
+    <button class="btn-back" (click)="voltar()">
+      ← Voltar
+    </button>
+    <h2>Extrato da Conta</h2>
+    <div class="header-actions">
+      <button class="btn-reload" (click)="carregarExtrato()" [disabled]="loading">
+        <span *ngIf="loading">🔄</span>
+        <span *ngIf="!loading">↻</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Resumo -->
+  <div class="resumo">
+    <div class="resumo-card receitas">
+      <span class="resumo-label">Receitas</span>
+      <span class="resumo-value">+ R$ {{ getTotalReceitas() | number:'1.2-2' }}</span>
+    </div>
+    <div class="resumo-card despesas">
+      <span class="resumo-label">Despesas</span>
+      <span class="resumo-value">- R$ {{ getTotalDespesas() | number:'1.2-2' }}</span>
+    </div>
+    <div class="resumo-card saldo">
+      <span class="resumo-label">Saldo</span>
+      <span class="resumo-value">R$ {{ getSaldo() | number:'1.2-2' }}</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Carregando extrato...</p>
+  </div>
+
+  <!-- Lista de transações -->
+  <div class="transactions" *ngIf="!loading">
+    <div class="transaction-item"
+         *ngFor="let transaction of transactions"
+         [class.receita]="transaction.category.earn"
+         [class.despesa]="!transaction.category.earn">
+      <div class="transaction-icon">
+        <span *ngIf="transaction.category.earn">↑</span>
+        <span *ngIf="!transaction.category.earn">↓</span>
+      </div>
+      <div class="transaction-info">
+        <h4>{{ transaction.description }}</h4>
+        <p class="transaction-category">{{ transaction.category.description }}</p>
+        <p class="transaction-date">{{ transaction.dateRegistration | date:'dd/MM/yyyy' }}</p>
+      </div>
+      <div class="transaction-value" [class.positive]="transaction.category.earn">
+        <span *ngIf="transaction.category.earn">+</span>
+        <span *ngIf="!transaction.category.earn">-</span>
+        R$ {{ transaction.value | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="transactions.length === 0">
+      <p>Nenhuma transação encontrada</p>
+    </div>
+  </div>
+</div>
