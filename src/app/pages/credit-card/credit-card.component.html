@@ -2,21 +2,24 @@
   <div class="header">
     <h2>Cartões:</h2>
     <button class="btn-reload" (click)="recarregarDados()" [disabled]="loading">
-      <span *ngIf="loading">🔄</span>
+      <span *ngIf="loading" class="spinning">🔄</span>
       <span *ngIf="!loading">↻</span>
       {{ loading ? 'Carregando...' : 'Atualizar' }}
     </button>
   </div>
 
-  <div class="cards" *ngIf="!loading">
+  <div class="cards" *ngIf="!loading && cartoes.length > 0">
     <div class="card"
          *ngFor="let cartao of cartoes"
-         (click)="selecionarCartao(cartao.id)"
-         [class.selected]="cartaoSelecionado === cartao.id">
+         (click)="selecionarCartao(cartao.uuid)"
+         [class.selected]="cartaoSelecionado === cartao.uuid">
       <div class="card-content">
         <h4>{{ cartao.description }}</h4>
-        <p class="card-bandeira">{{ cartao.flags.name | titlecase }}</p>
-        <p class="card-limite">Limite: R$ {{ cartao.limite | number:'1.2-2' }}</p>
+        <p class="card-bandeira">{{ cartao.flags.name }}</p>
+        <p class="card-limite">Limite: {{ cartao.limite | currency:'BRL':'symbol':'1.2-2' }}</p>
+        <p class="card-faturas" *ngIf="cartao.faturas && cartao.faturas.length > 0">
+          {{ cartao.faturas.length }} fatura(s)
+        </p>
       </div>
     </div>
     <div class="card create-card" routerLink="/create-card">
@@ -25,6 +28,14 @@
         <span>Criar Cartão</span>
       </div>
     </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && cartoes.length === 0">
+    <div class="empty-icon">💳</div>
+    <p>Você ainda não possui cartões cadastrados</p>
+    <button class="btn-create-first" routerLink="/create-card">
+      Criar Primeiro Cartão
+    </button>
   </div>
 
   <div class="loading-state" *ngIf="loading">
@@ -40,7 +51,8 @@
         class="nav-arrow nav-arrow-left"
         (click)="faturaAnterior()"
         [disabled]="!podeVoltar()"
-        [class.disabled]="!podeVoltar()">
+        [class.disabled]="!podeVoltar()"
+        title="Fatura anterior">
         &#8249;
       </button>
 
@@ -53,7 +65,8 @@
         class="nav-arrow nav-arrow-right"
         (click)="proximaFatura()"
         [disabled]="!podeAvancar()"
-        [class.disabled]="!podeAvancar()">
+        [class.disabled]="!podeAvancar()"
+        title="Próxima fatura">
         &#8250;
       </button>
     </div>
@@ -62,9 +75,21 @@
     <div class="fatura-info">
       <div class="fatura-item">
         <span class="label">Valor da Fatura:</span>
-        <span class="value" [class]="getStatusFatura().toLowerCase().replace(' ', '-')">
+        <span class="value valor-fatura" [class]="getStatusFatura().toLowerCase().replace(' ', '-')">
           {{ getFaturaValor() }}
         </span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Valor Pago:</span>
+        <span class="value valor-pago">
+          {{ getValorPago() }}
+        </span>
+      </div>
+
+      <div class="fatura-item">
+        <span class="label">Data de Fechamento:</span>
+        <span class="value">{{ getDataFechamento() }}</span>
       </div>
 
       <div class="fatura-item">
@@ -86,11 +111,12 @@
     </div>
 
     <!-- Indicador de navegação (pontos) -->
-    <div class="fatura-indicator" *ngIf="getCartaoSelecionado()">
+    <div class="fatura-indicator" *ngIf="getCartaoSelecionado() && getCartaoSelecionado()!.faturas">
       <span
         *ngFor="let fatura of getCartaoSelecionado()!.faturas; let i = index"
         class="indicator-dot"
         [class.active]="i === faturaAtualIndex"
+        [title]="fatura.mes + ' ' + fatura.ano"
         (click)="faturaAtualIndex = i">
       </span>
     </div>
@@ -98,16 +124,30 @@
     <!-- Ações da fatura -->
     <div class="fatura-actions">
       <button
-        class="btn-pagar">
+        class="btn-pagar"
+        (click)="pagarFatura()"
+        [disabled]="getStatusFatura() === 'Pago' || getStatusFatura() === 'Futura'">
+        <span *ngIf="getStatusFatura() === 'Pago'">✓ Pago</span>
+        <span *ngIf="getStatusFatura() === 'Futura'">Fatura Futura</span>
+        <span *ngIf="getStatusFatura() === 'Fechamento Pendente'">Pagar Pendência</span>
+        <span *ngIf="getStatusFatura() === 'Em aberto'">Pagar Fatura</span>
       </button>
 
-      <button class="btn-detalhes">
+      <button class="btn-detalhes" (click)="verDetalhes()">
         Ver Detalhes
       </button>
 
-      <button class="btn-fechar" (click)="fecharFatura()">
+      <button class="btn-fechar" (click)="fecharFatura()" title="Fechar">
         ✕
       </button>
+    </div>
+  </div>
+
+  <!-- Mensagem quando não há faturas -->
+  <div class="no-faturas" *ngIf="cartaoSelecionado && getCartaoSelecionado() && (!getCartaoSelecionado()!.faturas || getCartaoSelecionado()!.faturas.length === 0)">
+    <div class="no-faturas-content">
+      <p>Este cartão ainda não possui faturas</p>
+      <button class="btn-fechar-no-faturas" (click)="fecharFatura()">Fechar</button>
     </div>
   </div>
 </div>
