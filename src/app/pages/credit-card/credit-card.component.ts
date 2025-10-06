@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { CreditCardService, CartaoData, Fatura } from '../../services/credit-card.service';
+import { FormsModule } from '@angular/forms';
+import { CreditCardService, CartaoData } from '../../services/credit-card.service';
+import { CreditCardBillService, Fatura, ItemFatura } from '../../services/credit-card-bill.service';
 import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-credit-card',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './credit-card.component.html',
   styleUrl: './credit-card.component.scss'
 })
@@ -17,8 +19,14 @@ export class CreditCardComponent implements OnInit {
   faturaAtualIndex: number = 0;
   loading: boolean = false;
 
+  // Modal de detalhes
+  modalDetalhesAberto: boolean = false;
+  itensFatura: ItemFatura[] = [];
+  loadingDetalhes: boolean = false;
+
   constructor(
     private creditCardService: CreditCardService,
+    private billService: CreditCardBillService,
     private router: Router,
     private toastr: ToastrService
   ) {}
@@ -42,7 +50,7 @@ export class CreditCardComponent implements OnInit {
 
         // Para cada cartão, busca suas faturas
         const faturaRequests = cartoes.map(cartao =>
-          this.creditCardService.getFaturasPorCartao(cartao.uuid)
+          this.billService.getFaturasPorCartao(cartao.uuid)
         );
 
         forkJoin(faturaRequests).subscribe({
@@ -152,7 +160,7 @@ export class CreditCardComponent implements OnInit {
    */
   getFaturaValor(): string {
     const fatura = this.getFaturaAtual();
-    return fatura ? this.creditCardService.formatarMoeda(fatura.valor) : '';
+    return fatura ? this.billService.formatarMoeda(fatura.valor) : '';
   }
 
   /**
@@ -168,7 +176,7 @@ export class CreditCardComponent implements OnInit {
    */
   getLimiteDisponivel(): string {
     const fatura = this.getFaturaAtual();
-    return fatura ? this.creditCardService.formatarMoeda(fatura.limiteDisponivel) : '';
+    return fatura ? this.billService.formatarMoeda(fatura.limiteDisponivel) : '';
   }
 
   /**
@@ -200,7 +208,7 @@ export class CreditCardComponent implements OnInit {
    */
   getValorPago(): string {
     const fatura = this.getFaturaAtual();
-    return fatura ? this.creditCardService.formatarMoeda(fatura.valorPago) : '';
+    return fatura ? this.billService.formatarMoeda(fatura.valorPago) : '';
   }
 
   /**
@@ -218,7 +226,7 @@ export class CreditCardComponent implements OnInit {
     const fatura = this.getFaturaAtual();
     if (fatura && fatura.status !== 'Pago') {
       this.loading = true;
-      this.creditCardService.pagarFatura(fatura.uuid).subscribe({
+      this.billService.pagarFatura(fatura.uuid).subscribe({
         next: (faturaAtualizada) => {
           this.toastr.success('Fatura paga com sucesso!');
           if (fatura) {
@@ -241,9 +249,47 @@ export class CreditCardComponent implements OnInit {
   verDetalhes(): void {
     const fatura = this.getFaturaAtual();
     if (fatura) {
-      this.toastr.info('Tela de detalhes em desenvolvimento');
-      // this.router.navigate(['/detalhes-fatura', fatura.uuid]);
+      this.modalDetalhesAberto = true;
+      this.loadingDetalhes = true;
+      this.itensFatura = [];
+
+      // Usando o endpoint correto: /creditCardBill/bill/{billId}?active=ACTIVE
+      this.billService.getItensFatura(fatura.uuid).subscribe({
+        next: (itens) => {
+          this.itensFatura = itens;
+          this.loadingDetalhes = false;
+        },
+        error: (error) => {
+          console.error('Erro ao carregar itens da fatura:', error);
+          this.toastr.error('Erro ao carregar detalhes da fatura');
+          this.loadingDetalhes = false;
+        }
+      });
     }
+  }
+
+  /**
+   * Fecha o modal de detalhes
+   */
+  fecharModal(): void {
+    this.modalDetalhesAberto = false;
+    this.itensFatura = [];
+    this.loadingDetalhes = false;
+  }
+
+  /**
+   * Formata valor para moeda brasileira
+   */
+  formatarMoeda(valor: number): string {
+    return this.billService.formatarMoeda(valor);
+  }
+
+  /**
+   * Calcula o total dos itens da fatura
+   */
+  calcularTotal(): string {
+    const total = this.itensFatura.reduce((acc, item) => acc + item.valor, 0);
+    return this.billService.formatarMoeda(total);
   }
 
   /**
@@ -251,5 +297,72 @@ export class CreditCardComponent implements OnInit {
    */
   recarregarDados(): void {
     this.carregarCartoes();
+  }
+
+  /**
+   * Alterna o estado de ativação do cartão
+   */
+  toggleDesativarCartao(event: Event, cartao: CartaoData): void {
+    event.stopPropagation(); // Impede que o click abra o cartão
+
+    const checkbox = event.target as HTMLInputElement;
+    const desativar = checkbox.checked;
+
+    // Log para debug
+    console.log('Tentando', desativar ? 'desativar' : 'ativar', 'cartão:', cartao.uuid);
+
+    if (desativar) {
+      // Desativar cartão
+      this.creditCardService.desativarCartao(cartao.uuid).subscribe({
+        next: (response) => {
+          console.log('Resposta do backend:', response);
+          this.toastr.success(response.message || 'Cartão desativado com sucesso');
+          cartao.desativado = true;
+        },
+        error: (error) => {
+          console.error('Erro ao desativar cartão:', error);
+          console.error('Detalhes do erro:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error?.error?.message,
+            error: error.error
+          });
+
+          const mensagemErro = error?.error?.message ||
+            error?.message ||
+            'Erro ao desativar cartão. Verifique o console para mais detalhes.';
+
+          this.toastr.error(mensagemErro);
+          checkbox.checked = false; // Reverte o checkbox
+          cartao.desativado = false;
+        }
+      });
+    } else {
+      // Ativar cartão
+      this.creditCardService.ativarCartao(cartao.uuid).subscribe({
+        next: (response) => {
+          console.log('Resposta do backend:', response);
+          this.toastr.success(response.message || 'Cartão ativado com sucesso');
+          cartao.desativado = false;
+        },
+        error: (error) => {
+          console.error('Erro ao ativar cartão:', error);
+          console.error('Detalhes do erro:', {
+            status: error.status,
+            statusText: error.statusText,
+            message: error?.error?.message,
+            error: error.error
+          });
+
+          const mensagemErro = error?.error?.message ||
+            error?.message ||
+            'Erro ao ativar cartão. Verifique o console para mais detalhes.';
+
+          this.toastr.error(mensagemErro);
+          checkbox.checked = true; // Reverte o checkbox
+          cartao.desativado = true;
+        }
+      });
+    }
   }
 }

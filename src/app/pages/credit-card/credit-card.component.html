@@ -12,13 +12,26 @@
     <div class="card"
          *ngFor="let cartao of cartoes"
          (click)="selecionarCartao(cartao.uuid)"
-         [class.selected]="cartaoSelecionado === cartao.uuid">
+         [class.selected]="cartaoSelecionado === cartao.uuid"
+         [class.desativado]="cartao.desativado">
       <div class="card-content">
-        <h4>{{ cartao.description }}</h4>
+        <div class="card-header-actions">
+          <h4>{{ cartao.description }}</h4>
+          <label class="checkbox-container" (click)="$event.stopPropagation()" title="Desativar cartão">
+            <input
+              type="checkbox"
+              [(ngModel)]="cartao.desativado"
+              (change)="toggleDesativarCartao($event, cartao)">
+            <span class="checkbox-label">Desativar</span>
+          </label>
+        </div>
         <p class="card-bandeira">{{ cartao.flags.name }}</p>
         <p class="card-limite">Limite: {{ cartao.limite | currency:'BRL':'symbol':'1.2-2' }}</p>
         <p class="card-faturas" *ngIf="cartao.faturas && cartao.faturas.length > 0">
           {{ cartao.faturas.length }} fatura(s)
+        </p>
+        <p class="card-status" *ngIf="cartao.desativado">
+          <span class="badge-desativado">⚠️ Desativado</span>
         </p>
       </div>
     </div>
@@ -144,10 +157,62 @@
   </div>
 
   <!-- Mensagem quando não há faturas -->
-  <div class="no-faturas" *ngIf="cartaoSelecionado && getCartaoSelecionado() && (!getCartaoSelecionado()!.faturas || getCartaoSelecionado()!.faturas.length === 0)">
+  <div class="no-faturas" *ngIf="cartaoSelecionado && getCartaoSelecionado() && (!getCartaoSelecionado()!.faturas || getCartaoSelecionado()!.faturas!.length === 0)">
     <div class="no-faturas-content">
       <p>Este cartão ainda não possui faturas</p>
       <button class="btn-fechar-no-faturas" (click)="fecharFatura()">Fechar</button>
+    </div>
+  </div>
+
+  <!-- Modal de Detalhes da Fatura -->
+  <div class="modal-overlay" *ngIf="modalDetalhesAberto" (click)="fecharModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Detalhes da Fatura</h3>
+        <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="loading-detalhes" *ngIf="loadingDetalhes">
+          <div class="spinner"></div>
+          <p>Carregando detalhes...</p>
+        </div>
+
+        <div class="detalhes-content" *ngIf="!loadingDetalhes">
+          <div class="empty-items" *ngIf="itensFatura.length === 0">
+            <p>Nenhum lançamento encontrado nesta fatura.</p>
+          </div>
+
+          <div class="items-list" *ngIf="itensFatura.length > 0">
+            <div class="item" *ngFor="let item of itensFatura">
+              <div class="item-header">
+                <h4 class="item-descricao">{{ item.descricao }}</h4>
+                <span class="item-valor">{{ formatarMoeda(item.valor) }}</span>
+              </div>
+              <div class="item-footer">
+                <span class="item-categoria">{{ item.categoria }}</span>
+                <span class="item-data">{{ item.dataRegistro }}</span>
+              </div>
+              <div class="item-parcelas" *ngIf="item.parcelado">
+                <span class="badge-parcelas">📊 Parcelado em {{ item.numeroParcelas }}x</span>
+              </div>
+            </div>
+
+            <div class="total-resumo">
+              <div class="total-item">
+                <span class="total-label">Total de Lançamentos:</span>
+                <span class="total-count">{{ itensFatura.length }}</span>
+              </div>
+              <div class="total-item">
+                <span class="total-label">Valor Total:</span>
+                <span class="total-valor">{{ calcularTotal() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
