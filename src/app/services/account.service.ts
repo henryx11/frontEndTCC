@@ -30,4 +30,14 @@ export class AccountService {
   getUserAccounts(): Observable<Account[]> {
     return this.httpClient.get<Account[]>(`${this.apiUrl}`);
   }
+
+  // Desativar conta
+  deactivateAccount(accountUuid: string): Observable<any> {
+    return this.httpClient.delete(`${this.apiUrl}/deactivate/${accountUuid}`);
+  }
+
+// Ativar conta
+  activateAccount(accountUuid: string): Observable<any> {
+    return this.httpClient.put(`${this.apiUrl}/activate/${accountUuid}`, {});
+  }
 }

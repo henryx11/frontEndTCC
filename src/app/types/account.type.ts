@@ -13,4 +13,5 @@ export interface Account {
   };
   createdAt: Date;
   updatedAt: Date;
+  active: string | null;
 }

@@ -95,6 +95,13 @@ export class AccountsListComponent implements OnInit {
   }
 
   /**
+   * Verifica se a conta está ativa
+   */
+  isContaAtiva(conta: Account): boolean {
+    return conta.active === 'ACTIVE';
+  }
+
+  /**
    * Abre tela de extrato
    */
   /**
@@ -107,6 +114,38 @@ export class AccountsListComponent implements OnInit {
     const conta = this.getContaSelecionada();
     if (conta) {
       this.router.navigate(['/account-statement', conta.uuid]);
+    }
+  }
+
+  /**
+   * Alterna o status da conta (ativar/desativar)
+   */
+  toggleContaStatus(event: Event, conta: Account): void {
+    event.stopPropagation(); // Evita abrir os detalhes ao clicar no botão
+
+    const isAtiva = this.isContaAtiva(conta);
+    const acao = isAtiva ? 'desativar' : 'ativar';
+    const mensagem = `Tem certeza que deseja ${acao} a conta "${conta.name}"?`;
+
+    if (confirm(mensagem)) {
+      this.loading = true;
+
+      const operacao = isAtiva
+        ? this.accountService.deactivateAccount(conta.uuid)
+        : this.accountService.activateAccount(conta.uuid);
+
+      operacao.subscribe({
+        next: () => {
+          this.toastr.success(`Conta ${isAtiva ? 'desativada' : 'ativada'} com sucesso!`);
+          this.carregarContas(); // Recarrega a lista
+          this.fecharDetalhes(); // Fecha o painel de detalhes se estiver aberto
+        },
+        error: (error) => {
+          console.error(`Erro ao ${acao} conta:`, error);
+          this.toastr.error(`Erro ao ${acao} a conta. Tente novamente.`);
+          this.loading = false;
+        }
+      });
     }
   }
 }

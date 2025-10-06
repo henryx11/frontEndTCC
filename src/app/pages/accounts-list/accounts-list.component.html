@@ -8,13 +8,25 @@
     </button>
   </div>
 
-  <div class="cards" *ngIf="!loading">  <!-- ✅ ADICIONE ESTA LINHA -->
+  <div class="cards" *ngIf="!loading">
     <div class="card"
          *ngFor="let conta of contas"
-         (click)="selecionarConta(conta.uuid)"
-         [class.selected]="contaSelecionada === conta.uuid">
-      <div class="card-content">
-        <h4>{{ conta.name }}</h4>
+         [class.selected]="contaSelecionada === conta.uuid"
+         [class.desativada]="!isContaAtiva(conta)">
+
+      <!-- Botão de ativar/desativar -->
+      <button class="btn-toggle-status"
+              (click)="toggleContaStatus($event, conta)"
+              [title]="isContaAtiva(conta) ? 'Desativar conta' : 'Ativar conta'">
+        <span *ngIf="isContaAtiva(conta)">🔒</span>
+        <span *ngIf="!isContaAtiva(conta)">🔓</span>
+      </button>
+
+      <div class="card-content" (click)="selecionarConta(conta.uuid)">
+        <div class="card-header">
+          <h4>{{ conta.name }}</h4>
+          <span class="badge-desativada" *ngIf="!isContaAtiva(conta)">Desativada</span>
+        </div>
         <p class="card-banco">{{ conta.bank?.name }}</p>
         <p class="card-saldo">Saldo: R$ {{ conta.balance | number:'1.2-2' }}</p>
       </div>
@@ -26,7 +38,7 @@
         <span>Criar Conta</span>
       </div>
     </div>
-  </div>  <!-- ✅ FECHE A DIV .cards AQUI -->
+  </div>
 
   <div class="loading-state" *ngIf="loading">
     <div class="spinner"></div>
@@ -50,14 +62,13 @@
 
       <div class="fatura-item">
         <span class="label">Tipo de Conta:</span>
-        <span class="value">{{ getContaSelecionada()?.type?.description  }}</span>
+        <span class="value">{{ getContaSelecionada()?.type?.description }}</span>
       </div>
 
       <div class="fatura-item">
         <span class="label">Saldo Atual:</span>
         <span class="value limite">R$ {{ getContaSelecionada()?.balance | number:'1.2-2' }}</span>
       </div>
-
     </div>
 
     <div class="fatura-actions">
@@ -70,6 +81,7 @@
       </button>
 
       <button class="btn-fechar" (click)="fecharDetalhes()">
+        ✕
       </button>
     </div>
   </div>
