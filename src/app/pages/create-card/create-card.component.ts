@@ -1,158 +1,160 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-
-interface CartaoData {
-  descricao: string;
-  dataVencimento: string;
-  dataFechamento: string;
-  bandeira: string;
-  limite: number;
-}
+import { CreditCardService, CartaoFlags } from '../../services/credit-card.service';
+import { AccountService } from '../../services/account.service';
+import { Account } from '../../types/account.type';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-create-card',
-  imports: [CommonModule, FormsModule],
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './create-card.component.html',
-  styleUrl: './create-card.component.scss'
+  styleUrls: ['./create-card.component.scss']
 })
-export class CreateCardComponent {
+export class CreateCardComponent implements OnInit {
+  cartaoForm!: FormGroup;
+  loading: boolean = false;
+  loadingContas: boolean = false;
+  loadingBandeiras: boolean = false;
 
-  // Dados do formulário
-  cartaoData: CartaoData = {
-    descricao: '',
-    dataVencimento: '',
-    dataFechamento: '',
-    bandeira: '',
-    limite: 0
-  };
+  contas: Account[] = [];
+  bandeiras: CartaoFlags[] = [];
 
-  mostrarErroData: boolean = false;
+  constructor(
+    private formBuilder: FormBuilder,
+    private creditCardService: CreditCardService,
+    private accountService: AccountService,
+    private router: Router,
+    private toastr: ToastrService
+  ) {}
 
-  constructor(private router: Router) {}
+  ngOnInit(): void {
+    this.inicializarFormulario();
+    this.carregarContas();
+    this.carregarBandeiras();
+  }
 
-  criarCartao(form: NgForm): void {
-    if (form.valid && this.validarDatas()) {
-      const dadosParaEnvio = {
-        ...this.cartaoData,
-        dataVencimento: this.cartaoData.dataVencimento,
-        dataFechamento: this.cartaoData.dataFechamento
-      };
+  /**
+   * Inicializa o formulário com validações
+   */
+  inicializarFormulario(): void {
+    this.cartaoForm = this.formBuilder.group({
+      descricao: ['', [Validators.required, Validators.minLength(3)]],
+      conta: ['', Validators.required],
+      bandeira: ['', Validators.required],
+      limite: ['', [Validators.required, Validators.min(0.01)]],
+      dataFechamento: ['', Validators.required],
+      dataVencimento: ['', Validators.required]
+    }, {
+      validators: this.validarDatas
+    });
+  }
 
-      console.log('Dados do cartão (formato brasileiro):', dadosParaEnvio);
+  /**
+   * Validador customizado para verificar se dataFechamento < dataVencimento
+   */
+  validarDatas(control: AbstractControl): ValidationErrors | null {
+    const dataFechamento = control.get('dataFechamento')?.value;
+    const dataVencimento = control.get('dataVencimento')?.value;
 
-      // Aqui você faria a chamada para o backend
-      // this.cartaoService.criarCartao(dadosParaEnvio).subscribe(
-      //   response => {
-      //     console.log('Cartão criado com sucesso:', response);
-      //     this.router.navigate(['/credit-card']);
-      //   },
-      //   error => {
-      //     console.error('Erro ao criar cartão:', error);
-      //   }
-      // );
+    if (dataFechamento && dataVencimento) {
+      const fechamento = new Date(dataFechamento);
+      const vencimento = new Date(dataVencimento);
 
-      // Por enquanto, apenas simula o sucesso
-      alert(`Cartão "${this.cartaoData.descricao}" criado com sucesso!\n\nDados:\n- Vencimento: ${dadosParaEnvio.dataVencimento}\n- Fechamento: ${dadosParaEnvio.dataFechamento}`);
-      this.router.navigate(['/credit-card']);
-    } else {
-      if (!this.validarDatas()) {
-        alert('Erro: A data de fechamento deve ser anterior à data de vencimento.');
-        return;
+      if (fechamento >= vencimento) {
+        return { datasInvalidas: true };
       }
-      alert('Por favor, preencha todos os campos obrigatórios.');
-      this.markFormGroupTouched(form);
     }
+
+    return null;
   }
 
-
-  /*** editar cartão (placeholder)*/
-  editarCartao(): void {
-    console.log('Função editar cartão chamada');
-    alert('Funcionalidade de edição será implementada em breve!');
-
-    // Aqui você poderia implementar a lógica de edição
-    // Por exemplo, carregar dados de um cartão existente para edição
+  /**
+   * Carrega as contas do usuário
+   */
+  carregarContas(): void {
+    this.loadingContas = true;
+    this.accountService.getUserAccounts().subscribe({
+      next: (contas) => {
+        // Filtra apenas contas ativas
+        this.contas = contas.filter(conta => conta.active === 'ACTIVE');
+        this.loadingContas = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar contas:', error);
+        this.toastr.error('Erro ao carregar contas');
+        this.loadingContas = false;
+      }
+    });
   }
 
+  /**
+   * Carrega as bandeiras de cartão disponíveis
+   */
+  carregarBandeiras(): void {
+    this.loadingBandeiras = true;
+    this.creditCardService.getCartaoFlags().subscribe({
+      next: (bandeiras) => {
+        this.bandeiras = bandeiras;
+        this.loadingBandeiras = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar bandeiras:', error);
+        this.toastr.error('Erro ao carregar bandeiras');
+        this.loadingBandeiras = false;
+      }
+    });
+  }
+
+  /**
+   * Cria o cartão de crédito
+   */
+  criarCartao(): void {
+    if (this.cartaoForm.invalid) {
+      this.cartaoForm.markAllAsTouched();
+      return;
+    }
+
+    this.loading = true;
+
+    const dadosCartao = {
+      description: this.cartaoForm.value.descricao,
+      limite: parseFloat(this.cartaoForm.value.limite),
+      closeDate: this.cartaoForm.value.dataFechamento,
+      expiryDate: this.cartaoForm.value.dataVencimento,
+      flags: {
+        uuid: this.cartaoForm.value.bandeira
+      },
+      accounts: {
+        uuid: this.cartaoForm.value.conta
+      }
+    };
+
+    this.creditCardService.criarCartao(dadosCartao).subscribe({
+      next: (response) => {
+        this.toastr.success('Cartão criado com sucesso!');
+        this.router.navigate(['/credit-card']);
+      },
+      error: (error) => {
+        console.error('Erro ao criar cartão:', error);
+        const mensagemErro = error?.error?.message || 'Erro ao criar cartão. Tente novamente.';
+        this.toastr.error(mensagemErro);
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
+   * Cancela e volta para a página de cartões
+   */
   cancelar(): void {
     const confirmacao = confirm('Tem certeza que deseja cancelar? Os dados não serão salvos.');
 
     if (confirmacao) {
       this.router.navigate(['/credit-card']);
     }
-  }
-
-  /**
-   * Marca todos os campos como touched para mostrar erros de validação
-   */
-  private markFormGroupTouched(form: NgForm): void {
-    Object.keys(form.controls).forEach(key => {
-      form.controls[key].markAsTouched();
-    });
-  }
-
-  /**
-   * Formata o valor do limite enquanto o usuário digita
-   */
-  onLimiteChange(event: any): void {
-    let value = event.target.value;
-
-    // Remove caracteres não numéricos exceto ponto e vírgula
-    value = value.replace(/[^\d.,]/g, '');
-
-    // Converte vírgula para ponto para o formato numérico
-    value = value.replace(',', '.');
-
-    this.cartaoData.limite = parseFloat(value) || 0;
-  }
-
-  /**
-   * Chamado quando qualquer data é alterada
-   */
-  onDataChange(): void {
-    // Pequeno delay para garantir que o ngModel foi atualizado
-    setTimeout(() => {
-      this.validarDatas();
-    }, 100);
-  }
-
-  /**
-   * Valida as datas para garantir que fazem sentido
-   */
-  validarDatas(): boolean {
-    // Se as duas datas estão preenchidas, valida
-    if (this.cartaoData.dataVencimento && this.cartaoData.dataFechamento) {
-      const dataVenc = new Date(this.cartaoData.dataVencimento);
-      const dataFech = new Date(this.cartaoData.dataFechamento);
-
-      // Data de fechamento deve ser antes da data de vencimento
-      const datasValidas = dataFech < dataVenc;
-
-      // Atualiza o controle de exibição do erro
-      this.mostrarErroData = !datasValidas;
-
-      return datasValidas;
-    }
-
-    // Se não tem as duas datas, não mostra erro
-    this.mostrarErroData = false;
-    return true;
-  }
-
-  /**
-   * Formatar bandeira para exibição
-   */
-  formatarBandeira(bandeira: string): string {
-    const bandeiras: { [key: string]: string } = {
-      'visa': 'Visa',
-      'mastercard': 'Mastercard',
-      'elo': 'Elo',
-      'american': 'American Express',
-      'hipercard': 'Hipercard'
-    };
-
-    return bandeiras[bandeira] || bandeira;
   }
 }

@@ -18,8 +18,7 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent },
-      { path: 'create-card', component: CreateCardComponent }
+      { path: 'signup', component: SignupComponent }
     ]
   },
 
@@ -32,7 +31,8 @@ export const routes: Routes = [
       { path: 'credit-card', component: CreditCardComponent },
       { path: 'create-account', component: CreateAccountComponent },
       { path: 'accounts-list', component: AccountsListComponent },
-      { path: 'account-statement/:id', component: AccountStatementComponent }
+      { path: 'account-statement/:id', component: AccountStatementComponent },
+      { path: 'create-card', component: CreateCardComponent }
     ]
   },
 

@@ -100,25 +100,37 @@ export class CreditCardBillService {
   /**
    * Busca os itens/lançamentos de uma fatura específica
    * Endpoint: GET /creditCardBill/bill/{billId}?active=ACTIVE
+   * Nota: O backend pode retornar active como null, então filtramos apenas os que não são DISABLE
    */
   getItensFatura(faturaUuid: string): Observable<ItemFatura[]> {
-    const params = new HttpParams().set('active', 'ACTIVE');
-
+    // Não passa o parâmetro active pois o backend retorna null para itens ativos
     return this.httpClient.get<ItemFaturaBackend[]>(
-      `${this.apiUrl}/creditCardBill/bill/${faturaUuid}`,
-      { params }
+      `${this.apiUrl}/creditCardBill/bill/${faturaUuid}`
     ).pipe(
-      map(itens => itens.map(item => this.mapearItemFatura(item)))
+      map(itens => {
+        // Filtra apenas itens que não estão desativados
+        const itensAtivos = itens.filter(item =>
+          item.active !== 'DISABLE' && item.active !== 'DISABLED'
+        );
+        return itensAtivos.map(item => this.mapearItemFatura(item));
+      })
     );
   }
 
   /**
    * Paga uma fatura específica
+   * Endpoint: POST /bill/payment/{id}
+   * Body: { uuid: string, amount: number }
    */
-  pagarFatura(faturaUuid: string, valorPagamento?: number): Observable<Fatura> {
-    const body = valorPagamento ? { valor: valorPagamento } : {};
-    return this.httpClient.post<FaturaBackend>(`${this.apiUrl}/faturas/${faturaUuid}/pagar`, body).pipe(
-      map(fatura => this.mapearFaturaBackendParaFrontend(fatura))
+  pagarFatura(faturaUuid: string, valorPagamento: number): Observable<any> {
+    const body = {
+      uuid: faturaUuid,
+      amount: valorPagamento
+    };
+
+    return this.httpClient.post(
+      `${this.apiUrl}/bill/payment/${faturaUuid}`,
+      body
     );
   }
 
@@ -165,14 +177,18 @@ export class CreditCardBillService {
    * Mapeia item da fatura do backend para frontend
    */
   private mapearItemFatura(itemBackend: ItemFaturaBackend): ItemFatura {
+    // Verifica se é parcelado: installments === "sim" E numberinstallments > 1
+    const isParcelado = itemBackend.installments?.toLowerCase() === 'sim'
+      && itemBackend.numberinstallments > 1;
+
     return {
       uuid: itemBackend.uuid,
       descricao: itemBackend.description,
       valor: itemBackend.value,
       dataRegistro: this.formatarData(itemBackend.registrationDate),
       categoria: itemBackend.category?.description || 'Sem categoria',
-      parcelado: itemBackend.numberinstallments > 1,
-      numeroParcelas: itemBackend.numberinstallments,
+      parcelado: isParcelado,
+      numeroParcelas: itemBackend.numberinstallments || 0,
       active: itemBackend.active
     };
   }

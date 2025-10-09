@@ -11,27 +11,26 @@
   <div class="cards" *ngIf="!loading && cartoes.length > 0">
     <div class="card"
          *ngFor="let cartao of cartoes"
-         (click)="selecionarCartao(cartao.uuid)"
          [class.selected]="cartaoSelecionado === cartao.uuid"
-         [class.desativado]="cartao.desativado">
-      <div class="card-content">
-        <div class="card-header-actions">
+         [class.desativado]="!isCartaoAtivo(cartao)">
+
+      <!-- Botão de ativar/desativar -->
+      <button class="btn-toggle-status"
+              (click)="toggleCartaoStatus($event, cartao)"
+              [title]="isCartaoAtivo(cartao) ? 'Desativar cartão' : 'Ativar cartão'">
+        <span *ngIf="isCartaoAtivo(cartao)">🔒</span>
+        <span *ngIf="!isCartaoAtivo(cartao)">🔓</span>
+      </button>
+
+      <div class="card-content" (click)="selecionarCartao(cartao.uuid)">
+        <div class="card-header">
           <h4>{{ cartao.description }}</h4>
-          <label class="checkbox-container" (click)="$event.stopPropagation()" title="Desativar cartão">
-            <input
-              type="checkbox"
-              [(ngModel)]="cartao.desativado"
-              (change)="toggleDesativarCartao($event, cartao)">
-            <span class="checkbox-label">Desativar</span>
-          </label>
+          <span class="badge-desativado" *ngIf="!isCartaoAtivo(cartao)">Desativado</span>
         </div>
         <p class="card-bandeira">{{ cartao.flags.name }}</p>
         <p class="card-limite">Limite: {{ cartao.limite | currency:'BRL':'symbol':'1.2-2' }}</p>
         <p class="card-faturas" *ngIf="cartao.faturas && cartao.faturas.length > 0">
           {{ cartao.faturas.length }} fatura(s)
-        </p>
-        <p class="card-status" *ngIf="cartao.desativado">
-          <span class="badge-desativado">⚠️ Desativado</span>
         </p>
       </div>
     </div>
@@ -209,6 +208,73 @@
                 <span class="total-label">Valor Total:</span>
                 <span class="total-valor">{{ calcularTotal() }}</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Pagamento -->
+  <div class="modal-overlay" *ngIf="modalPagamentoAberto" (click)="fecharModalPagamento()">
+    <div class="modal-content modal-pagamento" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Pagar Fatura</h3>
+        <button class="btn-fechar-modal" (click)="fecharModalPagamento()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="pagamento-content">
+          <div class="pagamento-info">
+            <div class="info-item">
+              <span class="info-label">Cartão:</span>
+              <span class="info-value">{{ getNomeCartao() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Período:</span>
+              <span class="info-value">{{ getMesAnoFatura() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Valor da Fatura:</span>
+              <span class="info-value destaque">{{ getFaturaValor() }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Valor Pago:</span>
+              <span class="info-value">{{ getValorPago() }}</span>
+            </div>
+          </div>
+
+          <div class="pagamento-form">
+            <div class="form-group">
+              <label for="valorPagamento">Valor do Pagamento</label>
+              <input
+                type="number"
+                id="valorPagamento"
+                [(ngModel)]="valorPagamento"
+                step="0.01"
+                min="0.01"
+                placeholder="0,00"
+                class="input-valor"
+              />
+              <small class="helper-text">Informe o valor que deseja pagar</small>
+            </div>
+
+            <div class="pagamento-actions">
+              <button
+                class="btn-confirmar-pagamento"
+                (click)="confirmarPagamento()"
+                [disabled]="!valorPagamento || valorPagamento <= 0 || loadingPagamento">
+                <span *ngIf="!loadingPagamento">💳 Confirmar Pagamento</span>
+                <span *ngIf="loadingPagamento">Processando...</span>
+              </button>
+              <button
+                class="btn-cancelar-pagamento"
+                (click)="fecharModalPagamento()"
+                [disabled]="loadingPagamento">
+                Cancelar
+              </button>
             </div>
           </div>
         </div>

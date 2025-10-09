@@ -18,15 +18,20 @@ export interface CartaoData {
 export interface CartaoFlags {
   uuid: string;
   name: string;
-  active: null;
+  active: null | string;
 }
 
 export interface CreateCartaoRequest {
   description: string;
-  expiryDate: string;
-  closeDate: string;
-  flags: string;
   limite: number;
+  closeDate: string;
+  expiryDate: string;
+  flags: {
+    uuid: string;
+  };
+  accounts: {
+    uuid: string;
+  };
 }
 
 @Injectable({
@@ -62,7 +67,7 @@ export class CreditCardService {
    * Cria um novo cartão de crédito
    */
   criarCartao(dados: CreateCartaoRequest): Observable<CartaoData> {
-    return this.httpClient.post<CartaoData>(`${this.apiUrl}/creditCard`, dados);
+    return this.httpClient.post<CartaoData>(`${this.apiUrl}/creditCard/create`, dados);
   }
 
   /**
@@ -70,13 +75,6 @@ export class CreditCardService {
    */
   atualizarCartao(uuid: string, dados: Partial<CreateCartaoRequest>): Observable<CartaoData> {
     return this.httpClient.put<CartaoData>(`${this.apiUrl}/creditCard/${uuid}`, dados);
-  }
-
-  /**
-   * Deleta um cartão (hard delete)
-   */
-  deletarCartao(uuid: string): Observable<{message: string}> {
-    return this.httpClient.delete<{message: string}>(`${this.apiUrl}/creditCard/${uuid}`);
   }
 
   /**
