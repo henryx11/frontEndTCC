@@ -72,8 +72,8 @@
     </div>
 
     <div class="fatura-actions">
-      <button class="btn-pagar">
-        Nova Transação
+      <button class="btn-pagar" (click)="abrirModalTransferencia()">
+         Nova Transferência
       </button>
 
       <button class="btn-detalhes" (click)="verExtrato()">
@@ -85,4 +85,13 @@
       </button>
     </div>
   </div>
+
+  <!-- Modal de Transferência -->
+  <app-transfer-modal
+    *ngIf="modalTransferenciaAberto"
+    [contaOrigem]="getContaSelecionada()!"
+    [todasContas]="contas"
+    (fechar)="fecharModalTransferencia()"
+    (transferenciaRealizada)="onTransferenciaRealizada()"
+  ></app-transfer-modal>
 </div>

@@ -1,0 +1,127 @@
+<div class="modal-overlay" (click)="fecharModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Nova Transferência</h3>
+      <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="transferForm" (ngSubmit)="realizarTransferencia()">
+        <!-- Conta de Origem (readonly) -->
+        <div class="form-group">
+          <label for="contaOrigem">Conta de Origem</label>
+          <input
+            type="text"
+            id="contaOrigem"
+            [value]="contaOrigem?.name + ' - Saldo: R$ ' + (contaOrigem?.balance | number:'1.2-2')"
+            readonly
+            class="input-readonly"
+          />
+        </div>
+
+        <!-- Conta de Destino -->
+        <div class="form-group">
+          <label for="contaDestino">Conta de Destino *</label>
+          <select
+            id="contaDestino"
+            formControlName="contaDestino"
+            [class.invalid]="transferForm.get('contaDestino')?.invalid && transferForm.get('contaDestino')?.touched"
+          >
+            <option value="">Selecione a conta de destino</option>
+            <option
+              *ngFor="let conta of contasDisponiveis"
+              [value]="conta.uuid"
+            >
+              {{ conta.name }} ({{ conta.bank?.name }}) - Saldo: R$ {{ conta.balance | number:'1.2-2' }}
+            </option>
+          </select>
+          <small class="error-message" *ngIf="transferForm.get('contaDestino')?.invalid && transferForm.get('contaDestino')?.touched">
+            Selecione uma conta de destino
+          </small>
+        </div>
+
+        <!-- Valor -->
+        <div class="form-group">
+          <label for="valor">Valor da Transferência *</label>
+          <input
+            type="number"
+            id="valor"
+            formControlName="valor"
+            placeholder="0,00"
+            step="0.01"
+            min="0.01"
+            [class.invalid]="transferForm.get('valor')?.invalid && transferForm.get('valor')?.touched"
+          />
+          <small class="error-message" *ngIf="transferForm.get('valor')?.hasError('required') && transferForm.get('valor')?.touched">
+            Informe o valor da transferência
+          </small>
+          <small class="error-message" *ngIf="transferForm.get('valor')?.hasError('min') && transferForm.get('valor')?.touched">
+            O valor deve ser maior que zero
+          </small>
+          <small class="error-message" *ngIf="transferForm.get('valor')?.hasError('saldoInsuficiente')">
+            ⚠️ Saldo insuficiente na conta de origem
+          </small>
+        </div>
+
+        <!-- Categoria -->
+        <div class="form-group">
+          <label for="categoria">Categoria *</label>
+          <select
+            id="categoria"
+            formControlName="categoria"
+            [class.invalid]="transferForm.get('categoria')?.invalid && transferForm.get('categoria')?.touched"
+            [disabled]="loadingCategorias"
+          >
+            <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+            <option
+              *ngFor="let categoria of categorias"
+              [value]="categoria.uuid"
+            >
+              {{ categoria.icon }} {{ categoria.description }}
+            </option>
+          </select>
+          <small class="error-message" *ngIf="transferForm.get('categoria')?.invalid && transferForm.get('categoria')?.touched">
+            Selecione uma categoria
+          </small>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+          <label for="descricao">Descrição *</label>
+          <textarea
+            id="descricao"
+            formControlName="descricao"
+            placeholder="Ex: Transferência para poupança"
+            rows="3"
+            [class.invalid]="transferForm.get('descricao')?.invalid && transferForm.get('descricao')?.touched"
+          ></textarea>
+          <small class="error-message" *ngIf="transferForm.get('descricao')?.invalid && transferForm.get('descricao')?.touched">
+            Informe uma descrição para a transferência
+          </small>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-cancelar"
+            (click)="fecharModal()"
+            [disabled]="loading"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-transferir"
+            [disabled]="transferForm.invalid || loading || loadingCategorias"
+          >
+            <span *ngIf="!loading">Realizar Transferência</span>
+            <span *ngIf="loading">Processando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

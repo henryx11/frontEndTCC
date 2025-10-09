@@ -15,16 +15,21 @@
   <!-- Resumo -->
   <div class="resumo">
     <div class="resumo-card receitas">
-      <span class="resumo-label">Receitas</span>
+      <span class="resumo-label">💰 Entradas</span>
       <span class="resumo-value">+ R$ {{ getTotalReceitas() | number:'1.2-2' }}</span>
+      <span class="resumo-subtitle">Receitas + Transferências Recebidas</span>
     </div>
     <div class="resumo-card despesas">
-      <span class="resumo-label">Despesas</span>
+      <span class="resumo-label">💸 Saídas</span>
       <span class="resumo-value">- R$ {{ getTotalDespesas() | number:'1.2-2' }}</span>
+      <span class="resumo-subtitle">Despesas + Transferências Enviadas</span>
     </div>
     <div class="resumo-card saldo">
-      <span class="resumo-label">Saldo</span>
-      <span class="resumo-value">R$ {{ getSaldo() | number:'1.2-2' }}</span>
+      <span class="resumo-label">📊 Saldo Líquido</span>
+      <span class="resumo-value" [class.negative]="getSaldo() < 0">
+        R$ {{ getSaldo() | number:'1.2-2' }}
+      </span>
+      <span class="resumo-subtitle">Resultado do Período</span>
     </div>
   </div>
 
@@ -38,26 +43,42 @@
   <div class="transactions" *ngIf="!loading">
     <div class="transaction-item"
          *ngFor="let transaction of transactions"
-         [class.receita]="transaction.category.earn"
-         [class.despesa]="!transaction.category.earn">
+         [ngClass]="getTransactionClass(transaction)">
+
       <div class="transaction-icon">
-        <span *ngIf="transaction.category.earn">↑</span>
-        <span *ngIf="!transaction.category.earn">↓</span>
+        <span class="icon-emoji">{{ transaction.icon }}</span>
       </div>
+
       <div class="transaction-info">
-        <h4>{{ transaction.description }}</h4>
-        <p class="transaction-category">{{ transaction.category.description }}</p>
-        <p class="transaction-date">{{ transaction.dateRegistration | date:'dd/MM/yyyy' }}</p>
+        <h4>{{ transaction.displayDescription }}</h4>
+        <p class="transaction-category">
+  <span class="transfer-badge" *ngIf="transaction.isTransfer">
+    {{ transaction.type === 'TRANSFER_OUT' ? 'Transferência Enviada' : 'Transferência Recebida' }}
+  </span>
+          <span class="category-badge">
+    {{ transaction.category.description }}
+  </span>
+        </p>
+
+
+        <p class="transaction-date">
+          📅 {{ transaction.registrationDate | date:'dd/MM/yyyy' }}
+        </p>
+        <p class="related-account" *ngIf="transaction.relatedAccountName">
+          🏦 {{ transaction.relatedAccountName }}
+        </p>
       </div>
-      <div class="transaction-value" [class.positive]="transaction.category.earn">
-        <span *ngIf="transaction.category.earn">+</span>
-        <span *ngIf="!transaction.category.earn">-</span>
-        R$ {{ transaction.value | number:'1.2-2' }}
+
+      <div class="transaction-value" [class.positive]="isPositive(transaction.displayValue)">
+        <span class="value-sign">{{ isPositive(transaction.displayValue) ? '+' : '-' }}</span>
+        <span class="value-amount">{{ formatCurrency(transaction.displayValue) }}</span>
       </div>
     </div>
 
     <div class="empty-state" *ngIf="transactions.length === 0">
+      <div class="empty-icon">📋</div>
       <p>Nenhuma transação encontrada</p>
+      <small>As transações desta conta aparecerão aqui</small>
     </div>
   </div>
 </div>
