@@ -320,6 +320,35 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
+   * Abre o formulário para adicionar item na fatura
+   */
+  abrirFormularioItem(): void {
+    const fatura = this.getFaturaAtual();
+    const cartao = this.getCartaoSelecionado();
+
+    if (!fatura || !cartao) {
+      this.toastr.error('Dados da fatura não encontrados');
+      return;
+    }
+
+    // Navega para a página de adicionar item, passando dados via state e query params
+    this.router.navigate(['/add-item-bill'], {
+      state: {
+        faturaUuid: fatura.uuid,
+        cartaoUuid: cartao.uuid,
+        mesAnoFatura: `${fatura.mes} ${fatura.ano}`,
+        nomeCartao: cartao.description
+      },
+      queryParams: {
+        faturaUuid: fatura.uuid,
+        cartaoUuid: cartao.uuid,
+        mesAnoFatura: `${fatura.mes} ${fatura.ano}`,
+        nomeCartao: cartao.description
+      }
+    });
+  }
+
+  /**
    * Recarrega os dados dos cartões
    */
   recarregarDados(): void {
