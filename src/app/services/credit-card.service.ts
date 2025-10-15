@@ -78,6 +78,13 @@ export class CreditCardService {
   }
 
   /**
+   * Deleta um cartão (hard delete)
+   */
+  deletarCartao(uuid: string): Observable<{message: string}> {
+    return this.httpClient.delete<{message: string}>(`${this.apiUrl}/creditCard/${uuid}`);
+  }
+
+  /**
    * Desativa um cartão de crédito
    */
   desativarCartao(cartaoUuid: string): Observable<{message: string}> {
@@ -89,5 +96,13 @@ export class CreditCardService {
    */
   ativarCartao(cartaoUuid: string): Observable<{message: string}> {
     return this.httpClient.put<{message: string}>(`${this.apiUrl}/creditCard/activate/${cartaoUuid}`, {});
+  }
+
+  /**
+   * Remove um item da fatura do cartão
+   * Endpoint: DELETE /creditCardBill/{id}
+   */
+  removerItemFatura(itemUuid: string): Observable<{message: string}> {
+    return this.httpClient.delete<{message: string}>(`${this.apiUrl}/creditCardBill/${itemUuid}`);
   }
 }

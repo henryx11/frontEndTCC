@@ -1,0 +1,141 @@
+<div class="container">
+  <div class="header">
+    <h1>Adicionar Item na Fatura</h1>
+  </div>
+
+  <form [formGroup]="itemForm" (ngSubmit)="adicionarItem()" class="create-item">
+    <div class="form-group">
+      <label for="descricao">Descrição *</label>
+      <input
+        type="text"
+        id="descricao"
+        formControlName="descricao"
+        placeholder="Ex: Compra na Amazon"
+        [class.invalid]="itemForm.get('descricao')?.invalid && itemForm.get('descricao')?.touched"
+      />
+      <small class="error-message" *ngIf="itemForm.get('descricao')?.invalid && itemForm.get('descricao')?.touched">
+        Informe a descrição do item
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="valor">Valor *</label>
+      <input
+        type="number"
+        id="valor"
+        formControlName="valor"
+        placeholder="0,00"
+        step="0.01"
+        min="0.01"
+        [class.invalid]="itemForm.get('valor')?.invalid && itemForm.get('valor')?.touched"
+      />
+      <small class="error-message" *ngIf="itemForm.get('valor')?.hasError('required') && itemForm.get('valor')?.touched">
+        Informe o valor do item
+      </small>
+      <small class="error-message" *ngIf="itemForm.get('valor')?.hasError('min') && itemForm.get('valor')?.touched">
+        O valor deve ser maior que zero
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="dataRegistro">Data de Registro *</label>
+      <input
+        type="date"
+        id="dataRegistro"
+        formControlName="dataRegistro"
+        [class.invalid]="itemForm.get('dataRegistro')?.invalid && itemForm.get('dataRegistro')?.touched"
+      />
+      <small class="error-message" *ngIf="itemForm.get('dataRegistro')?.invalid && itemForm.get('dataRegistro')?.touched">
+        Informe a data de registro
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label for="categoria">Categoria *</label>
+      <select
+        id="categoria"
+        formControlName="categoria"
+        [class.invalid]="itemForm.get('categoria')?.invalid && itemForm.get('categoria')?.touched"
+        [disabled]="loadingCategorias"
+      >
+        <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+        <option
+          *ngFor="let categoria of categorias"
+          [value]="categoria.uuid"
+        >
+          {{ categoria.icon }} {{ categoria.description }}
+        </option>
+      </select>
+      <small class="error-message" *ngIf="itemForm.get('categoria')?.invalid && itemForm.get('categoria')?.touched">
+        Selecione uma categoria
+      </small>
+    </div>
+
+    <div class="form-group checkbox-group">
+      <label class="checkbox-container">
+        <input
+          type="checkbox"
+          formControlName="parcelado"
+          (change)="onParceladoChange()"
+        />
+        <span class="checkbox-label">💳 Parcelado</span>
+      </label>
+    </div>
+
+    <div class="form-group" *ngIf="itemForm.get('parcelado')?.value">
+      <label for="numeroParcelas">Número de Parcelas *</label>
+      <input
+        type="number"
+        id="numeroParcelas"
+        formControlName="numeroParcelas"
+        placeholder="Ex: 3"
+        min="2"
+        max="24"
+        [class.invalid]="itemForm.get('numeroParcelas')?.invalid && itemForm.get('numeroParcelas')?.touched"
+      />
+      <small class="error-message" *ngIf="itemForm.get('numeroParcelas')?.hasError('required') && itemForm.get('numeroParcelas')?.touched">
+        Informe o número de parcelas
+      </small>
+      <small class="error-message" *ngIf="itemForm.get('numeroParcelas')?.hasError('min') && itemForm.get('numeroParcelas')?.touched">
+        Mínimo de 2 parcelas
+      </small>
+      <small class="error-message" *ngIf="itemForm.get('numeroParcelas')?.hasError('max') && itemForm.get('numeroParcelas')?.touched">
+        Máximo de 24 parcelas
+      </small>
+      <small class="helper-text" *ngIf="itemForm.get('numeroParcelas')?.valid && itemForm.get('valor')?.valid">
+        Valor por parcela: {{ calcularValorParcela() }}
+      </small>
+    </div>
+
+    <div class="info-fatura">
+      <div class="info-item">
+        <span class="info-label">📅 Fatura:</span>
+        <span class="info-value">{{ mesAnoFatura }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">💳 Cartão:</span>
+        <span class="info-value">{{ nomeCartao }}</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn-create"
+        [disabled]="itemForm.invalid || loading || loadingCategorias">
+        <span *ngIf="!loading">✓ Adicionar Item</span>
+        <span *ngIf="loading">Adicionando...</span>
+      </button>
+    </div>
+
+    <div class="form-actions-secondary">
+      <button
+        type="button"
+        class="btn-cancel"
+        (click)="voltar()"
+        [disabled]="loading">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</div>

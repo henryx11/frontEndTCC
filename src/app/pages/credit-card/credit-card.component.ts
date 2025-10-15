@@ -320,6 +320,81 @@ export class CreditCardComponent implements OnInit {
   }
 
   /**
+   * Abre o formulário para adicionar item na fatura
+   */
+  abrirFormularioItem(): void {
+    const fatura = this.getFaturaAtual();
+    const cartao = this.getCartaoSelecionado();
+
+    if (!fatura || !cartao) {
+      this.toastr.error('Dados da fatura não encontrados');
+      return;
+    }
+
+    // Navega para a página de adicionar item, passando dados via state e query params
+    this.router.navigate(['/add-item-bill'], {
+      state: {
+        faturaUuid: fatura.uuid,
+        cartaoUuid: cartao.uuid,
+        mesAnoFatura: `${fatura.mes} ${fatura.ano}`,
+        nomeCartao: cartao.description
+      },
+      queryParams: {
+        faturaUuid: fatura.uuid,
+        cartaoUuid: cartao.uuid,
+        mesAnoFatura: `${fatura.mes} ${fatura.ano}`,
+        nomeCartao: cartao.description
+      }
+    });
+  }
+
+  /**
+   * Remove um item da fatura
+   */
+  removerItem(itemUuid: string): void {
+    const confirmacao = confirm('Tem certeza que deseja remover este item da fatura?');
+
+    if (!confirmacao) {
+      return;
+    }
+
+    this.loadingDetalhes = true;
+
+    this.creditCardService.removerItemFatura(itemUuid).subscribe({
+      next: (response) => {
+        this.toastr.success(response.message || 'Item removido com sucesso!');
+        // Recarrega os itens da fatura
+        this.verDetalhes();
+        // Recarrega os dados dos cartões para atualizar os valores
+        this.carregarCartoes();
+      },
+      error: (error) => {
+        console.error('Erro ao remover item:', error);
+
+        // Captura a mensagem de erro do backend
+        let mensagemErro = 'Erro ao remover item. Tente novamente.';
+
+        if (error.status === 422) {
+          // UNPROCESSABLE_ENTITY - janela fechada ou outra regra de negócio
+          mensagemErro = error.error?.message || 'Não foi possível excluir a fatura, pois já está fechado';
+        } else if (error.status === 403) {
+          // FORBIDDEN - sem permissão
+          mensagemErro = error.error?.message || 'Sem permissão para remover este lançamento';
+        } else if (error.status === 404) {
+          // NOT_FOUND
+          mensagemErro = error.error?.message || 'Item não encontrado';
+        } else if (error.error?.message) {
+          // Qualquer outra mensagem do backend
+          mensagemErro = error.error.message;
+        }
+
+        this.toastr.error(mensagemErro);
+        this.loadingDetalhes = false;
+      }
+    });
+  }
+
+  /**
    * Recarrega os dados dos cartões
    */
   recarregarDados(): void {
@@ -365,5 +440,13 @@ export class CreditCardComponent implements OnInit {
         }
       });
     }
+  }
+
+  /**
+   * Navega para a página de edição do cartão
+   */
+  editarCartao(event: Event, cartaoUuid: string): void {
+    event.stopPropagation(); // Evita abrir os detalhes ao clicar no botão
+    this.router.navigate(['/edit-card', cartaoUuid]);
   }
 }

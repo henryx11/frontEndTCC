@@ -9,6 +9,7 @@ import { CreateCardComponent } from './pages/create-card/create-card.component';
 import { CreateAccountComponent } from './pages/create-account/create-account.component';
 import { AccountsListComponent } from './pages/accounts-list/accounts-list.component';
 import { AccountStatementComponent } from './pages/account-statement/account-statement.component';
+import { AddItemCreditcardBillComponent } from './pages/add-item-creditcard-bill/add-item-creditcard-bill.component';
 
 import { authGuard } from './auth/guards/auth.guard';
 
@@ -32,7 +33,9 @@ export const routes: Routes = [
       { path: 'create-account', component: CreateAccountComponent },
       { path: 'accounts-list', component: AccountsListComponent },
       { path: 'account-statement/:id', component: AccountStatementComponent },
-      { path: 'create-card', component: CreateCardComponent }
+      { path: 'create-card', component: CreateCardComponent },
+      { path: 'edit-card/:uuid', component: CreateCardComponent },
+      { path: 'add-item-bill', component: AddItemCreditcardBillComponent }
     ]
   },
 

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CreditCardService, CartaoFlags } from '../../services/credit-card.service';
 import { AccountService } from '../../services/account.service';
 import { Account } from '../../types/account.type';
@@ -20,6 +20,10 @@ export class CreateCardComponent implements OnInit {
   loadingContas: boolean = false;
   loadingBandeiras: boolean = false;
 
+  // Modo edição
+  isEditMode: boolean = false;
+  cartaoUuid: string | null = null;
+
   contas: Account[] = [];
   bandeiras: CartaoFlags[] = [];
 
@@ -28,13 +32,54 @@ export class CreateCardComponent implements OnInit {
     private creditCardService: CreditCardService,
     private accountService: AccountService,
     private router: Router,
+    private route: ActivatedRoute,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.inicializarFormulario();
+    this.verificarModoEdicao();
     this.carregarContas();
     this.carregarBandeiras();
+  }
+
+  /**
+   * Verifica se está em modo edição e carrega os dados do cartão
+   */
+  verificarModoEdicao(): void {
+    this.route.paramMap.subscribe(params => {
+      this.cartaoUuid = params.get('uuid');
+      if (this.cartaoUuid) {
+        this.isEditMode = true;
+        this.carregarDadosCartao(this.cartaoUuid);
+      }
+    });
+  }
+
+  /**
+   * Carrega os dados do cartão para edição
+   */
+  carregarDadosCartao(uuid: string): void {
+    this.loading = true;
+    this.creditCardService.getCartaoPorId(uuid).subscribe({
+      next: (cartao) => {
+        this.cartaoForm.patchValue({
+          descricao: cartao.description,
+          conta: cartao.accounts?.uuid,
+          bandeira: cartao.flags?.uuid,
+          limite: cartao.limite,
+          dataFechamento: cartao.closeDate,
+          dataVencimento: cartao.expiryDate
+        });
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar cartão:', error);
+        this.toastr.error('Erro ao carregar dados do cartão');
+        this.router.navigate(['/credit-card']);
+        this.loading = false;
+      }
+    });
   }
 
   /**
@@ -110,9 +155,9 @@ export class CreateCardComponent implements OnInit {
   }
 
   /**
-   * Cria o cartão de crédito
+   * Cria ou atualiza o cartão de crédito
    */
-  criarCartao(): void {
+  salvarCartao(): void {
     if (this.cartaoForm.invalid) {
       this.cartaoForm.markAllAsTouched();
       return;
@@ -133,18 +178,35 @@ export class CreateCardComponent implements OnInit {
       }
     };
 
-    this.creditCardService.criarCartao(dadosCartao).subscribe({
-      next: (response) => {
-        this.toastr.success('Cartão criado com sucesso!');
-        this.router.navigate(['/credit-card']);
-      },
-      error: (error) => {
-        console.error('Erro ao criar cartão:', error);
-        const mensagemErro = error?.error?.message || 'Erro ao criar cartão. Tente novamente.';
-        this.toastr.error(mensagemErro);
-        this.loading = false;
-      }
-    });
+    if (this.isEditMode && this.cartaoUuid) {
+      // Modo edição
+      this.creditCardService.atualizarCartao(this.cartaoUuid, dadosCartao).subscribe({
+        next: (response) => {
+          this.toastr.success('Cartão atualizado com sucesso!');
+          this.router.navigate(['/credit-card']);
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar cartão:', error);
+          const mensagemErro = error?.error?.message || 'Erro ao atualizar cartão. Tente novamente.';
+          this.toastr.error(mensagemErro);
+          this.loading = false;
+        }
+      });
+    } else {
+      // Modo criação
+      this.creditCardService.criarCartao(dadosCartao).subscribe({
+        next: (response) => {
+          this.toastr.success('Cartão criado com sucesso!');
+          this.router.navigate(['/credit-card']);
+        },
+        error: (error) => {
+          console.error('Erro ao criar cartão:', error);
+          const mensagemErro = error?.error?.message || 'Erro ao criar cartão. Tente novamente.';
+          this.toastr.error(mensagemErro);
+          this.loading = false;
+        }
+      });
+    }
   }
 
   /**

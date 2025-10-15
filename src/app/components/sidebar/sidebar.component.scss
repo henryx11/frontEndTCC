@@ -220,3 +220,21 @@
     }
   }
 }
+
+// Customizar scrollbar
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+
+  &:hover {
+    background: #a0aec0;
+  }
+}
