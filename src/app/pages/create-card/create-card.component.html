@@ -1,6 +1,6 @@
 <div class="container">
-  <h1>Criar Cartão</h1>
-  <form [formGroup]="cartaoForm" (ngSubmit)="criarCartao()" class="create-card">
+  <h1>{{ isEditMode ? 'Editar Cartão' : 'Criar Cartão' }}</h1>
+  <form [formGroup]="cartaoForm" (ngSubmit)="salvarCartao()" class="create-card">
     <div class="form-group">
       <label for="descricao">Descrição *</label>
       <input
@@ -110,8 +110,8 @@
         type="submit"
         class="btn-create"
         [disabled]="cartaoForm.invalid || loading || loadingContas || loadingBandeiras">
-        <span *ngIf="!loading">Criar Cartão</span>
-        <span *ngIf="loading">Criando...</span>
+        <span *ngIf="!loading">{{ isEditMode ? 'Salvar Alterações' : 'Criar Cartão' }}</span>
+        <span *ngIf="loading">{{ isEditMode ? 'Salvando...' : 'Criando...' }}</span>
       </button>
     </div>
 

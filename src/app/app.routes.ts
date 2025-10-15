@@ -34,6 +34,7 @@ export const routes: Routes = [
       { path: 'accounts-list', component: AccountsListComponent },
       { path: 'account-statement/:id', component: AccountStatementComponent },
       { path: 'create-card', component: CreateCardComponent },
+      { path: 'edit-card/:uuid', component: CreateCardComponent },
       { path: 'add-item-bill', component: AddItemCreditcardBillComponent }
     ]
   },

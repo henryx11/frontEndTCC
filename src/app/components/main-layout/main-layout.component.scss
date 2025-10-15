@@ -1,9 +1,11 @@
 .main-layout {
   display: flex;
+  height: 100%;
 
   .content {
     flex: 1;
     background-color: #f9fafb;
     min-height: 100vh;
+    overflow: auto;
   }
 }
