@@ -145,11 +145,16 @@
     }
   }
 
+  .profile-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
   .profile {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 20px;
 
     img {
       width: 40px;
@@ -158,15 +163,37 @@
     }
 
     .info {
+      flex: 1;
+
       .name {
         font-size: 14px;
         font-weight: bold;
         color: #111827;
+        margin: 0 0 4px 0;
+      }
+
+      .btn-edit-profile {
+        background: transparent;
+        border: none;
+        color: #667eea;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        margin: 4px 0;
+        transition: all 0.2s ease;
+        text-align: left;
+
+        &:hover {
+          color: #5a67d8;
+          text-decoration: underline;
+        }
       }
 
       .role {
         font-size: 12px;
         color: #6b7280;
+        margin: 4px 0 0 0;
       }
     }
   }
@@ -175,7 +202,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-top: 16px;
+    margin-top: 8px;
     color: #6b7280;
     cursor: pointer;
 

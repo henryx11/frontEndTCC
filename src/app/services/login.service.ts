@@ -1,9 +1,9 @@
-// login.service.ts
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { LoginResponse } from '../types/login-response.type';
 import { tap } from 'rxjs';
 import { UserService } from './user.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({ providedIn: 'root' })
 export class LoginService {
@@ -17,13 +17,22 @@ export class LoginService {
   login(email: string, password: string) {
     return this.httpClient.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap((res) => {
-        this.userService.setToken(res.token); // DELEGA ao UserService
+        this.userService.setToken(res.token);
+
+        // Salva o nome do usuário também
+        try {
+          const decoded: any = jwtDecode(res.token);
+          if (decoded.name) {
+            this.userService.setUserName(decoded.name);
+          }
+        } catch (error) {
+          console.error('Erro ao decodificar token:', error);
+        }
       })
     );
   }
 
   register(data: { name: string; email: string; number: string; password: string; role?: number }) {
-    // Se o backend exige "role" como 0, já preenche se não vier
     if (data.role === undefined) {
       data.role = 0;
     }
@@ -31,6 +40,6 @@ export class LoginService {
   }
 
   logout(): void {
-    this.userService.logout(); // DELEGA para centralizar
+    this.userService.logout();
   }
 }

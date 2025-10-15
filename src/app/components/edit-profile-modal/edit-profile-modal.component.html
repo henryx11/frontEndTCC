@@ -1,0 +1,120 @@
+<div class="modal-overlay" (click)="fecharModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Editar Perfil</h3>
+      <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="profileForm" (ngSubmit)="atualizarPerfil()">
+        <!-- Nome -->
+        <div class="form-group">
+          <label for="name">Nome</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            placeholder="Seu nome completo"
+            [class.invalid]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched"
+          />
+          <small class="error-message" *ngIf="profileForm.get('name')?.hasError('minlength') && profileForm.get('name')?.touched">
+            Nome deve ter pelo menos 2 caracteres
+          </small>
+        </div>
+
+        <!-- Telefone -->
+        <div class="form-group">
+          <label for="phone">Telefone</label>
+          <input
+            type="tel"
+            id="phone"
+            formControlName="phone"
+            placeholder="11999999999"
+            [class.invalid]="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched"
+          />
+          <small class="error-message" *ngIf="profileForm.get('phone')?.hasError('pattern') && profileForm.get('phone')?.touched">
+            Telefone deve conter apenas números
+          </small>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span>Alterar Senha (opcional)</span>
+        </div>
+
+        <!-- Senha Atual -->
+        <div class="form-group">
+          <label for="currentPassword">Senha Atual</label>
+          <input
+            type="password"
+            id="currentPassword"
+            formControlName="currentPassword"
+            placeholder="Digite sua senha atual para alterá-la"
+            [class.invalid]="profileForm.get('currentPassword')?.invalid && profileForm.get('currentPassword')?.touched"
+          />
+          <small class="info-message">
+            💡 Deixe em branco se não quiser alterar a senha
+          </small>
+        </div>
+
+        <!-- Nova Senha -->
+        <div class="form-group" *ngIf="showPasswordFields">
+          <label for="newPassword">Nova Senha *</label>
+          <input
+            type="password"
+            id="newPassword"
+            formControlName="newPassword"
+            placeholder="Digite a nova senha"
+            [class.invalid]="profileForm.get('newPassword')?.invalid && profileForm.get('newPassword')?.touched"
+          />
+          <small class="error-message" *ngIf="profileForm.get('newPassword')?.hasError('required') && profileForm.get('newPassword')?.touched">
+            Nova senha é obrigatória
+          </small>
+          <small class="error-message" *ngIf="profileForm.get('newPassword')?.hasError('minlength') && profileForm.get('newPassword')?.touched">
+            Senha deve ter pelo menos 6 caracteres
+          </small>
+        </div>
+
+        <!-- Confirmar Nova Senha -->
+        <div class="form-group" *ngIf="showPasswordFields">
+          <label for="confirmPassword">Confirmar Nova Senha *</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            formControlName="confirmPassword"
+            placeholder="Digite novamente a nova senha"
+            [class.invalid]="(profileForm.get('confirmPassword')?.invalid || profileForm.errors?.['passwordMismatch']) && profileForm.get('confirmPassword')?.touched"
+          />
+          <small class="error-message" *ngIf="profileForm.get('confirmPassword')?.hasError('required') && profileForm.get('confirmPassword')?.touched">
+            Confirme a nova senha
+          </small>
+          <small class="error-message" *ngIf="profileForm.errors?.['passwordMismatch'] && profileForm.get('confirmPassword')?.touched">
+            ⚠️ As senhas não coincidem
+          </small>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-cancelar"
+            (click)="fecharModal()"
+            [disabled]="loading"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-salvar"
+            [disabled]="loading"
+          >
+            <span *ngIf="!loading">Salvar Alterações</span>
+            <span *ngIf="loading">Salvando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

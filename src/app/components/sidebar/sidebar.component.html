@@ -22,21 +22,31 @@
       <li class="dark-mode">
         <i class="icon">🌙</i> Dark mode
         <label class="switch">
-          <!--<input type="checkbox" [(ngModel)]="darkMode" (change)="toggleDarkMode()" />-->
           <span class="slider"></span>
         </label>
       </li>
     </ul>
   </nav>
 
-  <div class="profile">
-    <div class="info">
-      <p class="name">{{ userName || 'Usuário' }}</p>
-      <p class="role">Usuário logado</p>
+  <div class="profile-section">
+    <div class="profile">
+      <div class="info">
+        <p class="name">{{ userName || 'Usuário' }}</p>
+        <button class="btn-edit-profile" (click)="abrirModalEditarPerfil()">
+          Editar nome e senha
+        </button>
+      </div>
+    </div>
+
+    <div class="logout">
+      <button (click)="logout()">Log Out</button>
     </div>
   </div>
 
-  <div class="logout">
-    <button (click)="logout()">Log Out</button>
-  </div>
+  <!-- Modal de Editar Perfil -->
+  <app-edit-profile-modal
+    *ngIf="modalEditarPerfilAberto"
+    (fechar)="fecharModalEditarPerfil()"
+    (perfilAtualizado)="onPerfilAtualizado()"
+  ></app-edit-profile-modal>
 </div>
