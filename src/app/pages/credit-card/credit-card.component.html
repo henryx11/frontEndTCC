@@ -22,6 +22,13 @@
         <span *ngIf="!isCartaoAtivo(cartao)">🔓</span>
       </button>
 
+      <!-- Botão de editar -->
+      <button class="btn-edit"
+              (click)="editarCartao($event, cartao.uuid)"
+              title="Editar cartão">
+        ✏️
+      </button>
+
       <div class="card-content" (click)="selecionarCartao(cartao.uuid)">
         <div class="card-header">
           <h4>{{ cartao.description }}</h4>
@@ -188,7 +195,15 @@
             <div class="item" *ngFor="let item of itensFatura">
               <div class="item-header">
                 <h4 class="item-descricao">{{ item.descricao }}</h4>
-                <span class="item-valor">{{ formatarMoeda(item.valor) }}</span>
+                <div class="item-valor-actions">
+                  <span class="item-valor">{{ formatarMoeda(item.valor) }}</span>
+                  <button
+                    class="btn-delete-item"
+                    (click)="removerItem(item.uuid)"
+                    title="Remover item">
+                    🗑️
+                  </button>
+                </div>
               </div>
               <div class="item-footer">
                 <span class="item-categoria">{{ item.categoria }}</span>
