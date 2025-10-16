@@ -1,0 +1,178 @@
+<div class="modal-overlay" (click)="fecharModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <!-- ETAPA 1: SELECIONAR RECEITA -->
+    <div *ngIf="etapa === 'selecionar'">
+      <div class="modal-header">
+        <h3>✏️ Editar Receita</h3>
+        <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="instrucao">Selecione uma receita para editar:</p>
+
+        <div class="loading-state" *ngIf="loadingReceitas">
+          <div class="spinner"></div>
+          <p>Carregando receitas...</p>
+        </div>
+
+        <div class="lista-receitas" *ngIf="!loadingReceitas">
+          <div class="receita-item"
+               *ngFor="let receita of receitas"
+               (click)="selecionarReceita(receita)">
+            <div class="receita-info">
+              <h4>{{ receita.description }}</h4>
+              <p class="receita-detalhes">
+                <span class="conta">{{ receita.accounts.name }}</span>
+                <span class="categoria">{{ receita.category.description }}</span>
+              </p>
+              <p class="receita-data">{{ formatarData(receita.dateRegistration) }}</p>
+            </div>
+            <div class="receita-valor">
+              R$ {{ formatarValor(receita.value) }}
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="receitas.length === 0">
+            <p>📋 Nenhuma receita encontrada</p>
+            <small>Adicione uma receita primeiro para poder editá-la</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ETAPA 2: EDITAR RECEITA -->
+    <div *ngIf="etapa === 'editar'">
+      <div class="modal-header">
+        <div class="header-with-back">
+          <button class="btn-voltar" (click)="voltarParaLista()">
+            ← Voltar
+          </button>
+          <h3>Editando: {{ receitaSelecionada?.description }}</h3>
+        </div>
+        <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="editForm" (ngSubmit)="salvarEdicao()">
+          <!-- Conta -->
+          <div class="form-group">
+            <label for="conta">Conta *</label>
+            <select
+              id="conta"
+              formControlName="conta"
+              [class.invalid]="editForm.get('conta')?.invalid && editForm.get('conta')?.touched"
+            >
+              <option value="">Selecione a conta</option>
+              <option
+                *ngFor="let conta of contasAtivas"
+                [value]="conta.uuid"
+              >
+                {{ conta.name }} ({{ conta.bank?.name }})
+              </option>
+            </select>
+            <small class="error-message" *ngIf="editForm.get('conta')?.invalid && editForm.get('conta')?.touched">
+              Selecione uma conta
+            </small>
+          </div>
+
+          <!-- Valor -->
+          <div class="form-group">
+            <label for="valor">Valor da Receita *</label>
+            <input
+              type="number"
+              id="valor"
+              formControlName="valor"
+              placeholder="0,00"
+              step="0.01"
+              min="0.01"
+              [class.invalid]="editForm.get('valor')?.invalid && editForm.get('valor')?.touched"
+            />
+            <small class="error-message" *ngIf="editForm.get('valor')?.hasError('required') && editForm.get('valor')?.touched">
+              Informe o valor da receita
+            </small>
+            <small class="error-message" *ngIf="editForm.get('valor')?.hasError('min') && editForm.get('valor')?.touched">
+              O valor deve ser maior que zero
+            </small>
+          </div>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label for="categoria">Categoria *</label>
+            <select
+              id="categoria"
+              formControlName="categoria"
+              [class.invalid]="editForm.get('categoria')?.invalid && editForm.get('categoria')?.touched"
+              [disabled]="loadingCategorias"
+            >
+              <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+              <option
+                *ngFor="let categoria of categorias"
+                [value]="categoria.uuid"
+              >
+                {{ categoria.icon }} {{ categoria.description }}
+              </option>
+            </select>
+            <small class="error-message" *ngIf="editForm.get('categoria')?.invalid && editForm.get('categoria')?.touched">
+              Selecione uma categoria
+            </small>
+          </div>
+
+          <!-- Data -->
+          <div class="form-group">
+            <label for="data">Data *</label>
+            <input
+              type="date"
+              id="data"
+              formControlName="data"
+              [class.invalid]="editForm.get('data')?.invalid && editForm.get('data')?.touched"
+            />
+            <small class="error-message" *ngIf="editForm.get('data')?.invalid && editForm.get('data')?.touched">
+              Informe a data da receita
+            </small>
+          </div>
+
+          <!-- Descrição -->
+          <div class="form-group">
+            <label for="descricao">Descrição *</label>
+            <textarea
+              id="descricao"
+              formControlName="descricao"
+              placeholder="Ex: Salário mensal"
+              rows="3"
+              [class.invalid]="editForm.get('descricao')?.invalid && editForm.get('descricao')?.touched"
+            ></textarea>
+            <small class="error-message" *ngIf="editForm.get('descricao')?.invalid && editForm.get('descricao')?.touched">
+              Informe uma descrição para a receita
+            </small>
+          </div>
+
+          <!-- Botões -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-cancelar"
+              (click)="voltarParaLista()"
+              [disabled]="loading"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn-salvar"
+              [disabled]="editForm.invalid || loading || loadingCategorias"
+            >
+              <span *ngIf="!loading">Salvar Alterações</span>
+              <span *ngIf="loading">Salvando...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>

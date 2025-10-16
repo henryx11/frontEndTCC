@@ -19,6 +19,66 @@
       flex-direction: column;
       gap: 8px;
 
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 0;
+
+        .title {
+          font-size: 14px;
+          color: #374151;
+          margin: 0;
+        }
+
+        .card-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          min-width: 120px;
+
+          button {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+
+            &:hover {
+              transform: translateY(-2px);
+            }
+
+            &:active {
+              transform: translateY(0);
+            }
+          }
+
+          .btn-add {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+
+            &:hover {
+              background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+              box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            }
+          }
+
+          .btn-edit {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            color: white;
+
+            &:hover {
+              background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+              box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+            }
+          }
+        }
+      }
+
       .title {
         font-size: 14px;
         color: #374151;
@@ -27,6 +87,33 @@
       .value {
         font-size: 20px;
         font-weight: bold;
+        margin-top: 4px;
+
+        &.loading {
+          color: #9ca3af;
+          font-size: 16px;
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+      }
+
+      // Estilos específicos do card de receitas
+      &.receitas {
+        gap: 0 !important;
+
+        .card-header {
+          margin-bottom: 8px !important;
+        }
+
+        .title {
+          margin: 0 !important;
+        }
+
+        .value {
+          color: #059669;
+          margin: 0 !important;
+          padding: 0 !important;
+          line-height: 1.2;
+        }
       }
     }
   }
@@ -40,5 +127,32 @@
     justify-content: center;
     color: #6b7280;
     font-size: 16px;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (max-width: 1200px) {
+  .dashboard-container {
+    .cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 15px;
+
+    .cards {
+      grid-template-columns: 1fr;
+    }
   }
 }

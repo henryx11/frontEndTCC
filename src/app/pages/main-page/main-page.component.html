@@ -11,9 +11,24 @@
       <p class="value">- R$ 2.100</p>
     </div>
 
-    <div class="card">
-      <p class="title">Receitas do Mês</p>
-      <p class="value">+ R$ 3.000</p>
+    <div class="card receitas">
+      <div class="card-header">
+        <p class="title">Receitas do Mês</p>
+        <div class="card-buttons">
+          <button class="btn-add" (click)="abrirModalReceita()" title="Adicionar Receita">
+            + Adicionar
+          </button>
+          <button class="btn-edit" (click)="abrirModalEditarReceita()" title="Editar Receita">
+            ✏️ Editar
+          </button>
+        </div>
+      </div>
+      <p class="value" *ngIf="!loadingReceitas">
+        + R$ {{ formatarMoeda(totalReceitas) }}
+      </p>
+      <p class="value loading" *ngIf="loadingReceitas">
+        Carregando...
+      </p>
     </div>
 
   </div>
@@ -22,4 +37,20 @@
   <div class="content-box">
     <p>Área para gráficos ou relatórios</p>
   </div>
+
+  <!-- Modal de Adicionar Receita -->
+  <app-add-receita-modal
+    *ngIf="modalReceitaAberto"
+    [contas]="contas"
+    (fechar)="fecharModalReceita()"
+    (receitaAdicionada)="onReceitaAdicionada()"
+  ></app-add-receita-modal>
+
+  <!-- Modal de Editar Receita -->
+  <app-edit-receita-modal
+    *ngIf="modalEditarReceitaAberto"
+    [contas]="contas"
+    (fechar)="fecharModalEditarReceita()"
+    (receitaEditada)="onReceitaEditada()"
+  ></app-edit-receita-modal>
 </div>
