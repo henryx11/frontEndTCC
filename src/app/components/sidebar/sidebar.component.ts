@@ -48,6 +48,10 @@ export class SidebarComponent {
     this.router.navigate(['/credit-card']);
   }
 
+  goToMissions(): void {
+    this.router.navigate(['/missions']);
+  }
+
   logout(): void {
     this.userService.logout();
     this.router.navigate(['/login']);

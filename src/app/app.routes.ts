@@ -10,8 +10,8 @@ import { CreateAccountComponent } from './pages/create-account/create-account.co
 import { AccountsListComponent } from './pages/accounts-list/accounts-list.component';
 import { AccountStatementComponent } from './pages/account-statement/account-statement.component';
 import { AddItemCreditcardBillComponent } from './pages/add-item-creditcard-bill/add-item-creditcard-bill.component';
-
 import { authGuard } from './auth/guards/auth.guard';
+import {MissionsComponent} from './pages/missions/missions.component';
 
 export const routes: Routes = [
   {
@@ -35,7 +35,8 @@ export const routes: Routes = [
       { path: 'account-statement/:id', component: AccountStatementComponent },
       { path: 'create-card', component: CreateCardComponent },
       { path: 'edit-card/:uuid', component: CreateCardComponent },
-      { path: 'add-item-bill', component: AddItemCreditcardBillComponent }
+      { path: 'add-item-bill', component: AddItemCreditcardBillComponent },
+      { path: 'missions', component: MissionsComponent }
     ]
   },
 
