@@ -90,7 +90,7 @@ export class AddReceitaModalComponent implements OnInit {
     const receitaData = {
       value: parseFloat(formValue.valor),
       description: formValue.descricao,
-      registrationDate: formValue.data,
+      dateRegistration: formValue.data,
       accounts: {
         uuid: formValue.conta
       },
@@ -121,5 +121,20 @@ export class AddReceitaModalComponent implements OnInit {
    */
   fecharModal(): void {
     this.fechar.emit();
+  }
+
+  /**
+   * Ajusta a data compensando o problema de timezone do backend
+   * O backend interpreta como UTC, então adicionamos 1 dia
+   */
+  private ajustarDataParaBackend(data: string): string {
+    const date = new Date(data + 'T12:00:00');
+    date.setDate(date.getDate() + 1); // Adiciona 1 dia
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

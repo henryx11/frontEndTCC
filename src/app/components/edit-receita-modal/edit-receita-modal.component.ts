@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Account } from '../../types/account.type';
 import { Category } from '../../types/category.type';
 import { Receita } from '../../types/receita.type';
@@ -11,7 +11,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-edit-receita-modal',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './edit-receita-modal.component.html',
   styleUrls: ['./edit-receita-modal.component.scss']
 })
@@ -21,6 +21,7 @@ export class EditReceitaModalComponent implements OnInit {
   @Output() receitaEditada = new EventEmitter<void>();
 
   receitas: Receita[] = [];
+  receitasFiltradas: Receita[] = [];
   receitaSelecionada: Receita | null = null;
   editForm!: FormGroup;
   loading: boolean = false;
@@ -29,6 +30,11 @@ export class EditReceitaModalComponent implements OnInit {
   categorias: Category[] = [];
   contasAtivas: Account[] = [];
   etapa: 'selecionar' | 'editar' = 'selecionar';
+
+  // Filtros
+  dataInicio: string = '';
+  dataFim: string = '';
+  mostrarFiltroData: boolean = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -41,6 +47,83 @@ export class EditReceitaModalComponent implements OnInit {
     this.filtrarContasAtivas();
     this.carregarReceitas();
     this.carregarCategorias();
+    this.inicializarDatasDefault();
+  }
+
+  /**
+   * Inicializa as datas padrão (últimos 30 dias)
+   */
+  inicializarDatasDefault(): void {
+    const hoje = new Date();
+    const trintaDiasAtras = new Date();
+    trintaDiasAtras.setDate(hoje.getDate() - 30);
+
+    this.dataFim = this.formatarDataParaInput(hoje);
+    this.dataInicio = this.formatarDataParaInput(trintaDiasAtras);
+  }
+
+  /**
+   * Formata data para o input type="date" (YYYY-MM-DD)
+   */
+  formatarDataParaInput(data: Date): string {
+    const year = data.getFullYear();
+    const month = String(data.getMonth() + 1).padStart(2, '0');
+    const day = String(data.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Alterna exibição do filtro de data
+   */
+  toggleFiltroData(): void {
+    this.mostrarFiltroData = !this.mostrarFiltroData;
+  }
+
+  /**
+   * Aplica o filtro de data buscando do backend
+   */
+  aplicarFiltro(): void {
+    if (!this.dataInicio || !this.dataFim) {
+      this.toastr.warning('Selecione o período inicial e final');
+      return;
+    }
+
+    // Valida se data início é menor que data fim (comparação de strings YYYY-MM-DD)
+    if (this.dataInicio > this.dataFim) {
+      this.toastr.error('Data inicial não pode ser maior que data final');
+      return;
+    }
+
+    this.loadingReceitas = true;
+    this.mostrarFiltroData = false;
+
+    this.receitaService.buscarReceitasPorPeriodo(this.dataInicio, this.dataFim).subscribe({
+      next: (receitas) => {
+        this.receitasFiltradas = receitas.sort((a, b) => {
+          // Comparação direta de strings YYYY-MM-DD (mais eficiente e sem problemas de timezone)
+          const dateA = a.dateRegistration || '';
+          const dateB = b.dateRegistration || '';
+          return dateB.localeCompare(dateA); // Ordem decrescente (mais recente primeiro)
+        });
+        this.loadingReceitas = false;
+        this.toastr.success(`${this.receitasFiltradas.length} receita(s) encontrada(s)`);
+      },
+      error: (error) => {
+        console.error('Erro ao buscar receitas por período:', error);
+        this.toastr.error('Erro ao buscar receitas');
+        this.loadingReceitas = false;
+      }
+    });
+  }
+
+  /**
+   * Limpa o filtro e recarrega todas as receitas
+   */
+  limparFiltro(): void {
+    this.inicializarDatasDefault();
+    this.mostrarFiltroData = false;
+    this.carregarReceitas();
+    this.toastr.info('Filtro removido');
   }
 
   /**
@@ -58,10 +141,12 @@ export class EditReceitaModalComponent implements OnInit {
     this.receitaService.getAllReceitas().subscribe({
       next: (receitas) => {
         this.receitas = receitas.sort((a, b) => {
-          const dateA = new Date(a.dateRegistration || '').getTime();
-          const dateB = new Date(b.dateRegistration || '').getTime();
-          return dateB - dateA; // Mais recente primeiro
+          // Comparação direta de strings YYYY-MM-DD
+          const dateA = a.dateRegistration || '';
+          const dateB = b.dateRegistration || '';
+          return dateB.localeCompare(dateA);
         });
+        this.receitasFiltradas = [...this.receitas];
         this.loadingReceitas = false;
       },
       error: (error) => {
@@ -136,7 +221,7 @@ export class EditReceitaModalComponent implements OnInit {
     const updateData = {
       value: parseFloat(formValue.valor),
       description: formValue.descricao,
-      registrationDate: formValue.data,
+      dateRegistration: formValue.data,
       accounts: {
         uuid: formValue.conta
       },
@@ -173,13 +258,27 @@ export class EditReceitaModalComponent implements OnInit {
   }
 
   /**
-   * Formata data para exibição
+   * Formata data para exibição (CORRIGIDO - sem problemas de timezone)
    */
   formatarData(data: string | null): string {
     if (!data) return 'Data não informada';
 
     try {
-      const dateObj = new Date(data);
+      // Se já está no formato YYYY-MM-DD
+      if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+        const [year, month, day] = data.split('-');
+        return `${day}/${month}/${year}`;
+      }
+
+      // Se vier com hora, extrai apenas a data
+      if (data.includes('T')) {
+        const [datePart] = data.split('T');
+        const [year, month, day] = datePart.split('-');
+        return `${day}/${month}/${year}`;
+      }
+
+      // Fallback com timezone forçado
+      const dateObj = new Date(data + 'T12:00:00');
       return dateObj.toLocaleDateString('pt-BR');
     } catch {
       return 'Data inválida';

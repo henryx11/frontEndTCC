@@ -1,7 +1,7 @@
 export interface CreateReceitaRequest {
   value: number;
   description: string;
-  registrationDate: string; // formato YYYY-MM-DD
+  dateRegistration: string; // formato YYYY-MM-DD
   accounts: {
     uuid: string;
   };
@@ -13,7 +13,7 @@ export interface CreateReceitaRequest {
 export interface UpdateReceitaRequest {
   value: number;
   description: string;
-  registrationDate: string;
+  dateRegistration: string;
   accounts: {
     uuid: string;
   };
