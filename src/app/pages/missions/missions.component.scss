@@ -1,0 +1,148 @@
+.missions-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 175px;
+  padding: 2rem;
+  min-height: 100vh;
+  background: white;
+
+  @media (max-width: 968px) {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 2rem;
+  }
+}
+
+.missions-column {
+  flex: 0 1 600px;
+  max-width: 600px;
+
+  @media (max-width: 968px) {
+    max-width: 100%;
+  }
+}
+
+.missions-title {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.missions-subtitle {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin-bottom: 2rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #2d3748;
+
+  p {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+  }
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.missions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mission-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 1rem;
+}
+
+.mission-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+}
+
+.mission-reward {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+}
+
+.coin-icon {
+  font-size: 1.2rem;
+}
+
+.reward-value {
+  font-weight: bold;
+  color: #744210;
+  font-size: 1rem;
+}
+
+.mission-description {
+  color: #4a5568;
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.image-column {
+  flex: 0 1 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 400px;
+
+  @media (max-width: 968px) {
+    max-width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
+.guaxito-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+}

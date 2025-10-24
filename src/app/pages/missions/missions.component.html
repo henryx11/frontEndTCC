@@ -1,0 +1,36 @@
+<div class="missions-container">
+
+  <!-- Coluna de Missões -->
+  <div class="missions-column">
+    <h1 class="missions-title">Missões</h1>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando missões...</p>
+    </div>
+
+    <!-- Lista de Missões -->
+    <div *ngIf="!isLoading" class="missions-list">
+      <div *ngFor="let mission of missions" class="mission-card">
+        <div class="mission-header">
+          <h3 class="mission-title">{{ mission.title }}</h3>
+          <div class="mission-reward">
+            <span class="coin-icon">🪙</span>
+            <span class="reward-value">{{ mission.value }}</span>
+          </div>
+        </div>
+        <p class="mission-description">{{ mission.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Imagem do Guaxito -->
+  <div class="image-column">
+    <img
+      src="guaxito_agente_secreto.png"
+      alt="Guaxito Agente Secreto"
+      class="guaxito-image"
+    />
+  </div>
+</div>
