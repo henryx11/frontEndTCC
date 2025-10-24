@@ -36,6 +36,13 @@ export class ReceitaService {
   }
 
   /**
+   * Exclui uma receita
+   */
+  deleteReceita(uuid: string): Observable<void> {
+    return this.httpClient.delete<void>(`${this.apiUrl}/reciphe/${uuid}`);
+  }
+
+  /**
    * Formata a data atual para o formato YYYY-MM-DD
    */
   getCurrentDate(): string {

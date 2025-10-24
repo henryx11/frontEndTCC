@@ -212,11 +212,13 @@
           <div class="form-actions">
             <button
               type="button"
-              class="btn-cancelar"
-              (click)="voltarParaLista()"
+              class="btn-excluir"
+              (click)="excluirReceita()"
               [disabled]="loading"
+              title="Excluir receita permanentemente"
             >
-              Cancelar
+              <span *ngIf="!loading">Excluir</span>
+              <span *ngIf="loading">Excluindo...</span>
             </button>
             <button
               type="submit"

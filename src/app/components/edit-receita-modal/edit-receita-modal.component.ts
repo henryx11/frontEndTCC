@@ -248,6 +248,34 @@ export class EditReceitaModalComponent implements OnInit {
   }
 
   /**
+   * Exclui a receita selecionada
+   */
+  excluirReceita(): void {
+    if (!this.receitaSelecionada) return;
+
+    // Confirmação antes de excluir
+    if (!confirm(`Tem certeza que deseja excluir a receita "${this.receitaSelecionada.description}"?`)) {
+      return;
+    }
+
+    this.loading = true;
+
+    this.receitaService.deleteReceita(this.receitaSelecionada.uuid).subscribe({
+      next: () => {
+        this.toastr.success('Receita excluída com sucesso!');
+        this.receitaEditada.emit();
+        this.fecharModal();
+      },
+      error: (error) => {
+        console.error('Erro ao excluir receita:', error);
+        const mensagemErro = error?.error?.message || 'Erro ao excluir receita. Tente novamente.';
+        this.toastr.error(mensagemErro);
+        this.loading = false;
+      }
+    });
+  }
+
+  /**
    * Formata valor para exibição
    */
   formatarValor(valor: number): string {
