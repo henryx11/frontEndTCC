@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Transaction, TransactionDisplay, TransactionType } from '../types/transaction.type';
 
@@ -13,25 +13,89 @@ export class TransactionService {
   constructor(private httpClient: HttpClient) {}
 
   /**
-   * Busca todas as transações do usuário
+   * Busca todas as transações do usuário (RECEITAS + DESPESAS + TRANSFERÊNCIAS)
    */
   getAllTransactions(): Observable<Transaction[]> {
-    return this.httpClient.get<Transaction[]>(`${this.apiUrl}/transactions`);
+    console.log('🌐 Fazendo requisições GET para buscar TODAS as transações');
+
+    // Busca transferências
+    const transfers$ = this.httpClient.get<any[]>(`${this.apiUrl}/transactions`);
+
+    // Busca receitas (endpoint reciphe)
+    const receipts$ = this.httpClient.get<any[]>(`${this.apiUrl}/reciphe`);
+
+    // Combina os dois observables usando forkJoin
+    return forkJoin({
+      transfers: transfers$,
+      receipts: receipts$
+    }).pipe(
+      map(({ transfers, receipts }) => {
+        console.log('📦 Transferências do backend:', transfers.length);
+        console.log('📦 Receitas do backend:', receipts.length);
+
+        // Normaliza as receitas para ter o mesmo formato que transferências
+        const normalizedReceipts = receipts.map(receipt => ({
+          ...receipt,
+          registrationDate: receipt.dateRegistration || receipt.registrationDate, // ✅ Unifica o nome
+          foraccounts: null // ✅ Garante que não seja transferência
+        }));
+
+        console.log('✅ Receitas normalizadas:', normalizedReceipts);
+
+        // Combina os arrays
+        const allTransactions = [...transfers, ...normalizedReceipts];
+
+        console.log('📊 Total combinado de transações:', allTransactions.length);
+        return allTransactions;
+      })
+    );
   }
 
   /**
    * Busca transações de uma conta específica e formata para exibição
    */
   getTransactionsByAccount(accountUuid: string): Observable<TransactionDisplay[]> {
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔍 BUSCANDO TRANSAÇÕES DA CONTA');
+    console.log('📋 UUID da Conta:', accountUuid);
+
     return this.getAllTransactions().pipe(
       map(transactions => {
+        console.log('🔎 FILTRANDO TRANSAÇÕES:');
+
         // Filtra transações relacionadas à conta
-        const accountTransactions = transactions.filter(t =>
-          t.accounts?.uuid === accountUuid || t.foraccounts?.uuid === accountUuid
-        );
+        const accountTransactions = transactions.filter(t => {
+          const isOrigin = t.accounts?.uuid === accountUuid;
+          const isDestination = t.foraccounts?.uuid === accountUuid;
+          const matched = isOrigin || isDestination;
+
+          if (matched) {
+            console.log(`   ✅ Transação encontrada:`, {
+              description: t.description,
+              value: t.value,
+              isOrigin,
+              isDestination,
+              category: t.category.description,
+              earn: t.category.earn,
+              accounts: t.accounts?.uuid,
+              foraccounts: t.foraccounts?.uuid
+            });
+          }
+
+          return matched;
+        });
+
+        console.log('📊 Total de transações filtradas:', accountTransactions.length);
 
         // Mapeia para formato de exibição
-        return accountTransactions.map(t => this.formatTransactionForDisplay(t, accountUuid));
+        const displayTransactions = accountTransactions.map(t =>
+          this.formatTransactionForDisplay(t, accountUuid)
+        );
+
+        console.log('✅ Transações formatadas:', displayTransactions);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        return displayTransactions;
       })
     );
   }
@@ -43,6 +107,14 @@ export class TransactionService {
     const isOrigin = transaction.accounts?.uuid === accountUuid;
     const isDestination = transaction.foraccounts?.uuid === accountUuid;
     const isTransfer = !!(transaction.accounts && transaction.foraccounts);
+
+    console.log(`🔄 Formatando transação: ${transaction.description}`);
+    console.log(`   É origem? ${isOrigin}`);
+    console.log(`   É destino? ${isDestination}`);
+    console.log(`   É transferência? ${isTransfer}`);
+    console.log(`   Categoria earn? ${transaction.category.earn}`);
+    console.log(`   📅 Data original:`, transaction.registrationDate);
+    console.log(`   📋 Dados completos:`, transaction);
 
     let type: TransactionType;
     let displayValue: number;
@@ -61,6 +133,7 @@ export class TransactionService {
         displayDescription = `${transaction.description} → ${relatedAccountName}`;
         icon = '↗️';
         colorClass = 'transfer-out';
+        console.log(`   ↗️ Transferência ENVIADA: -${transaction.value}`);
       } else {
         // Entrada de dinheiro (destino)
         type = TransactionType.TRANSFER_IN;
@@ -69,6 +142,7 @@ export class TransactionService {
         displayDescription = `${transaction.description} ← ${relatedAccountName}`;
         icon = '↙️';
         colorClass = 'transfer-in';
+        console.log(`   ↙️ Transferência RECEBIDA: +${transaction.value}`);
       }
     } else {
       // Transação normal (receita ou despesa)
@@ -78,14 +152,21 @@ export class TransactionService {
         displayDescription = transaction.description;
         icon = '↑';
         colorClass = 'receita';
+        console.log(`   ↑ RECEITA: +${transaction.value}`);
       } else {
         type = TransactionType.EXPENSE;
         displayValue = -transaction.value;
         displayDescription = transaction.description;
         icon = '↓';
         colorClass = 'despesa';
+        console.log(`   ↓ DESPESA: -${transaction.value}`);
       }
     }
+
+    // Garantir que registrationDate existe, senão usa data atual
+    const registrationDate = transaction.registrationDate || new Date().toISOString().split('T')[0];
+
+    console.log(`   ✅ Data final formatada: ${registrationDate}`);
 
     return {
       uuid: transaction.uuid,
@@ -93,7 +174,7 @@ export class TransactionService {
       displayValue,
       description: transaction.description,
       displayDescription,
-      registrationDate: transaction.registrationDate,
+      registrationDate: registrationDate, // ✅ Garantido
       type,
       isTransfer,
       category: {
@@ -110,24 +191,55 @@ export class TransactionService {
    * Calcula totais de receitas para uma conta
    */
   calculateAccountIncome(transactions: TransactionDisplay[]): number {
-    return transactions
-      .filter(t => t.displayValue > 0)
-      .reduce((sum, t) => sum + t.displayValue, 0);
+    console.log('💰 CALCULANDO TOTAL DE RECEITAS (ENTRADAS):');
+
+    const receitas = transactions.filter(t => {
+      const isPositive = t.displayValue > 0;
+      if (isPositive) {
+        console.log(`   ✅ ${t.displayDescription}: +${t.displayValue}`);
+      }
+      return isPositive;
+    });
+
+    const total = receitas.reduce((sum, t) => sum + t.displayValue, 0);
+
+    console.log(`   📊 Total de entradas: ${receitas.length}`);
+    console.log(`   💵 Soma total: ${total}`);
+
+    return total;
   }
 
   /**
    * Calcula totais de despesas para uma conta
    */
   calculateAccountExpense(transactions: TransactionDisplay[]): number {
-    return transactions
-      .filter(t => t.displayValue < 0)
-      .reduce((sum, t) => sum + Math.abs(t.displayValue), 0);
+    console.log('💸 CALCULANDO TOTAL DE DESPESAS (SAÍDAS):');
+
+    const despesas = transactions.filter(t => {
+      const isNegative = t.displayValue < 0;
+      if (isNegative) {
+        console.log(`   ❌ ${t.displayDescription}: ${t.displayValue}`);
+      }
+      return isNegative;
+    });
+
+    const total = despesas.reduce((sum, t) => sum + Math.abs(t.displayValue), 0);
+
+    console.log(`   📊 Total de saídas: ${despesas.length}`);
+    console.log(`   💵 Soma total: ${total}`);
+
+    return total;
   }
 
   /**
    * Calcula saldo líquido das transações
    */
   calculateNetBalance(transactions: TransactionDisplay[]): number {
-    return transactions.reduce((sum, t) => sum + t.displayValue, 0);
+    const saldo = transactions.reduce((sum, t) => sum + t.displayValue, 0);
+
+    console.log('📈 CALCULANDO SALDO LÍQUIDO:');
+    console.log(`   Resultado: ${saldo}`);
+
+    return saldo;
   }
 }
