@@ -52,6 +52,10 @@ export class SidebarComponent {
     this.router.navigate(['/missions']);
   }
 
+  goToAchivements(): void {
+    this.router.navigate(['/achievements']);
+  }
+
   logout(): void {
     this.userService.logout();
     this.router.navigate(['/login']);

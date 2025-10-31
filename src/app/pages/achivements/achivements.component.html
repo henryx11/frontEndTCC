@@ -1,0 +1,76 @@
+<div class="achievements-container">
+  <h1 class="achievements-title">Conquistas</h1>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Carregando conquistas...</p>
+  </div>
+
+  <!-- Prateleiras de Conquistas -->
+  <div *ngIf="!isLoading" class="shelves-container">
+
+    <!-- Prateleira de Cima -->
+    <div class="shelf top-shelf">
+      <div class="shelf-content">
+        <div
+          *ngFor="let achievement of topShelfAchievements"
+          class="achievement-item"
+          [class.completed]="achievement.completed">
+
+          <div class="achievement-image-placeholder">
+            <span class="trophy-icon" *ngIf="achievement.completed">🏆</span>
+            <span class="lock-icon" *ngIf="!achievement.completed">🔒</span>
+          </div>
+
+          <div class="achievement-info">
+            <h3 class="achievement-title">{{ achievement.title }}</h3>
+            <p class="achievement-description">{{ achievement.description }}</p>
+
+            <div class="achievement-status">
+              <span *ngIf="achievement.completed" class="completed-badge">
+                ✓ Concluída em {{ formatDate(achievement.completedAt) }}
+              </span>
+              <span *ngIf="!achievement.completed" class="pending-badge">
+                Pendente
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="shelf-bar"></div>
+    </div>
+
+    <!-- Prateleira de Baixo -->
+    <div class="shelf bottom-shelf">
+      <div class="shelf-content">
+        <div
+          *ngFor="let achievement of bottomShelfAchievements"
+          class="achievement-item"
+          [class.completed]="achievement.completed">
+
+          <div class="achievement-image-placeholder">
+            <span class="trophy-icon" *ngIf="achievement.completed">🏆</span>
+            <span class="lock-icon" *ngIf="!achievement.completed">🔒</span>
+          </div>
+
+          <div class="achievement-info">
+            <h3 class="achievement-title">{{ achievement.title }}</h3>
+            <p class="achievement-description">{{ achievement.description }}</p>
+
+            <div class="achievement-status">
+              <span *ngIf="achievement.completed" class="completed-badge">
+                ✓ Concluída em {{ formatDate(achievement.completedAt) }}
+              </span>
+              <span *ngIf="!achievement.completed" class="pending-badge">
+                Pendente
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="shelf-bar"></div>
+    </div>
+
+  </div>
+</div>
