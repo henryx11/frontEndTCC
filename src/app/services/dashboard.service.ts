@@ -2,7 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ReceitasTotalResponse } from '../types/dashboard-stats.type';
+import {
+  ReceitasTotalResponse,
+  DespesasTotalResponse,
+  SaldoTotalResponse
+} from '../types/dashboard-stats.type';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +21,32 @@ export class DashboardService {
    */
   getTotalReceitas(): Observable<number> {
     return this.httpClient.get<ReceitasTotalResponse>(`${this.apiUrl}/reciphe/total`).pipe(
-      map(response => response.total)
+      map(response => response?.total ?? 0)
+    );
+  }
+
+  /**
+   * Busca todas as despesas e calcula o total
+   */
+  getTotalDespesas(): Observable<number> {
+    return this.httpClient.get<any[]>(`${this.apiUrl}/expense`).pipe(
+      map(despesas => {
+        if (!despesas || !Array.isArray(despesas)) return 0;
+
+        // Soma todos os valores das despesas
+        return despesas.reduce((total, despesa) => {
+          return total + (despesa.value || despesa.valor || 0);
+        }, 0);
+      })
+    );
+  }
+
+  /**
+   * ✨ Busca o saldo total de todas as contas do usuário
+   */
+  getSaldoTotal(): Observable<number> {
+    return this.httpClient.get<SaldoTotalResponse>(`${this.apiUrl}/accounts/total-balance`).pipe(
+      map(response => response?.total ?? 0)
     );
   }
 }

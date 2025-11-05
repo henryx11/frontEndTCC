@@ -1,0 +1,128 @@
+<!-- src/app/components/add-despesa-modal/add-despesa-modal.component.html -->
+
+<div class="modal-overlay" (click)="fecharModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>💸 Adicionar Despesa</h3>
+      <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <form [formGroup]="despesaForm" (ngSubmit)="adicionarDespesa()">
+        <!-- Conta -->
+        <div class="form-group">
+          <label for="conta">Conta *</label>
+          <select
+            id="conta"
+            formControlName="conta"
+            [class.invalid]="despesaForm.get('conta')?.invalid && despesaForm.get('conta')?.touched"
+          >
+            <option value="">Selecione a conta</option>
+            <option
+              *ngFor="let conta of contasAtivas"
+              [value]="conta.uuid"
+            >
+              {{ conta.name }} ({{ conta.bank?.name }})
+            </option>
+          </select>
+          <small class="error-message" *ngIf="despesaForm.get('conta')?.invalid && despesaForm.get('conta')?.touched">
+            Selecione uma conta
+          </small>
+        </div>
+
+        <!-- Valor -->
+        <div class="form-group">
+          <label for="valor">Valor da Despesa *</label>
+          <input
+            type="number"
+            id="valor"
+            formControlName="valor"
+            placeholder="0,00"
+            step="0.01"
+            min="0.01"
+            [class.invalid]="despesaForm.get('valor')?.invalid && despesaForm.get('valor')?.touched"
+          />
+          <small class="error-message" *ngIf="despesaForm.get('valor')?.hasError('required') && despesaForm.get('valor')?.touched">
+            Informe o valor da despesa
+          </small>
+          <small class="error-message" *ngIf="despesaForm.get('valor')?.hasError('min') && despesaForm.get('valor')?.touched">
+            O valor deve ser maior que zero
+          </small>
+        </div>
+
+        <!-- Categoria -->
+        <div class="form-group">
+          <label for="categoria">Categoria *</label>
+          <select
+            id="categoria"
+            formControlName="categoria"
+            [class.invalid]="despesaForm.get('categoria')?.invalid && despesaForm.get('categoria')?.touched"
+            [disabled]="loadingCategorias"
+          >
+            <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+            <option
+              *ngFor="let categoria of categorias"
+              [value]="categoria.uuid"
+            >
+              {{ categoria.icon }} {{ categoria.description }}
+            </option>
+          </select>
+          <small class="error-message" *ngIf="despesaForm.get('categoria')?.invalid && despesaForm.get('categoria')?.touched">
+            Selecione uma categoria
+          </small>
+        </div>
+
+        <!-- Data -->
+        <div class="form-group">
+          <label for="data">Data de Pagamento *</label>
+          <input
+            type="date"
+            id="data"
+            formControlName="data"
+            [class.invalid]="despesaForm.get('data')?.invalid && despesaForm.get('data')?.touched"
+          />
+          <small class="error-message" *ngIf="despesaForm.get('data')?.invalid && despesaForm.get('data')?.touched">
+            Informe a data da despesa
+          </small>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+          <label for="descricao">Descrição *</label>
+          <textarea
+            id="descricao"
+            formControlName="descricao"
+            placeholder="Ex: Conta de luz"
+            rows="3"
+            [class.invalid]="despesaForm.get('descricao')?.invalid && despesaForm.get('descricao')?.touched"
+          ></textarea>
+          <small class="error-message" *ngIf="despesaForm.get('descricao')?.invalid && despesaForm.get('descricao')?.touched">
+            Informe uma descrição para a despesa
+          </small>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-cancelar"
+            (click)="fecharModal()"
+            [disabled]="loading"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            class="btn-salvar"
+            [disabled]="despesaForm.invalid || loading || loadingCategorias"
+          >
+            <span *ngIf="!loading">Adicionar Despesa</span>
+            <span *ngIf="loading">Adicionando...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

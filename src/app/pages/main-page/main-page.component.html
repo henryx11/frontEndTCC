@@ -1,16 +1,49 @@
+<!-- src/app/pages/main-page/main-page.component.html -->
+
 <div class="dashboard-container">
   <!-- Cards -->
   <div class="cards">
-    <div class="card">
-      <p class="title">Saldo Atual</p>
-      <p class="value">+ R$ 4.000</p>
+    <!-- ✨ Card de Saldo Atual - ESTRUTURA CORRIGIDA -->
+    <div class="card saldo">
+      <div class="card-header">
+        <p class="title">Saldo Atual</p>
+        <!-- Espaço vazio para manter alinhamento com outros cards -->
+        <div class="card-placeholder"></div>
+      </div>
+      <p class="value"
+         *ngIf="!loadingSaldo"
+         [class.positivo]="saldoTotal > 0"
+         [class.negativo]="saldoTotal < 0"
+         [class.zero]="saldoTotal === 0">
+        {{ saldoTotal >= 0 ? '+' : '' }} R$ {{ formatarMoeda(Math.abs(saldoTotal)) }}
+      </p>
+      <p class="value loading" *ngIf="loadingSaldo">
+        Carregando...
+      </p>
     </div>
 
-    <div class="card">
-      <p class="title">Despesas do Mês</p>
-      <p class="value">- R$ 2.100</p>
+    <!-- Card de Despesas -->
+    <div class="card despesas">
+      <div class="card-header">
+        <p class="title">Despesas do Mês</p>
+        <div class="card-buttons">
+          <button class="btn-add-despesa" (click)="abrirModalDespesa()" title="Adicionar Despesa">
+            + Adicionar
+          </button>
+          <button class="btn-edit-despesa" (click)="abrirModalEditarDespesa()" title="Editar Despesa">
+            ✏️ Editar
+          </button>
+        </div>
+      </div>
+      <p class="value" *ngIf="!loadingDespesas">
+        - R$ {{ formatarMoeda(totalDespesas) }}
+      </p>
+      <p class="value loading" *ngIf="loadingDespesas">
+        Carregando...
+      </p>
     </div>
 
+    <!-- Card de Receitas -->
     <div class="card receitas">
       <div class="card-header">
         <p class="title">Receitas do Mês</p>
@@ -53,4 +86,20 @@
     (fechar)="fecharModalEditarReceita()"
     (receitaEditada)="onReceitaEditada()"
   ></app-edit-receita-modal>
+
+  <!-- Modal de Adicionar Despesa -->
+  <app-add-despesa-modal
+    *ngIf="modalDespesaAberto"
+    [contas]="contas"
+    (fechar)="fecharModalDespesa()"
+    (despesaAdicionada)="onDespesaAdicionada()"
+  ></app-add-despesa-modal>
+
+  <!-- Modal de Editar Despesa -->
+  <app-edit-despesa-modal
+    *ngIf="modalEditarDespesaAberto"
+    [contas]="contas"
+    (fechar)="fecharModalEditarDespesa()"
+    (despesaEditada)="onDespesaEditada()"
+  ></app-edit-despesa-modal>
 </div>

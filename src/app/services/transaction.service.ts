@@ -24,26 +24,39 @@ export class TransactionService {
     // Busca receitas (endpoint reciphe)
     const receipts$ = this.httpClient.get<any[]>(`${this.apiUrl}/reciphe`);
 
-    // Combina os dois observables usando forkJoin
+    // Busca despesas (endpoint expense)
+    const expenses$ = this.httpClient.get<any[]>(`${this.apiUrl}/expense`);
+
+    // Combina os três observables usando forkJoin
     return forkJoin({
       transfers: transfers$,
-      receipts: receipts$
+      receipts: receipts$,
+      expenses: expenses$
     }).pipe(
-      map(({ transfers, receipts }) => {
+      map(({ transfers, receipts, expenses }) => {
         console.log('📦 Transferências do backend:', transfers.length);
         console.log('📦 Receitas do backend:', receipts.length);
+        console.log('📦 Despesas do backend:', expenses.length);
 
         // Normaliza as receitas para ter o mesmo formato que transferências
         const normalizedReceipts = receipts.map(receipt => ({
           ...receipt,
-          registrationDate: receipt.dateRegistration || receipt.registrationDate, // ✅ Unifica o nome
-          foraccounts: null // ✅ Garante que não seja transferência
+          registrationDate: receipt.dateRegistration || receipt.registrationDate,
+          foraccounts: null
         }));
 
-        console.log('✅ Receitas normalizadas:', normalizedReceipts);
+        // Normaliza as despesas para ter o mesmo formato que transferências
+        const normalizedExpenses = expenses.map(expense => ({
+          ...expense,
+          registrationDate: expense.payDate || expense.dateRegistration || expense.registrationDate,
+          foraccounts: null
+        }));
+
+        console.log('✅ Receitas normalizadas:', normalizedReceipts.length);
+        console.log('✅ Despesas normalizadas:', normalizedExpenses.length);
 
         // Combina os arrays
-        const allTransactions = [...transfers, ...normalizedReceipts];
+        const allTransactions = [...transfers, ...normalizedReceipts, ...normalizedExpenses];
 
         console.log('📊 Total combinado de transações:', allTransactions.length);
         return allTransactions;

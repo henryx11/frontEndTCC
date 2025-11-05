@@ -1,3 +1,5 @@
+// src/app/pages/main-page/main-page.component.ts
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardService } from '../../services/dashboard.service';
@@ -5,21 +7,36 @@ import { AccountService } from '../../services/account.service';
 import { ToastrService } from 'ngx-toastr';
 import { AddReceitaModalComponent } from '../../components/add-receita-modal/add-receita-modal.component';
 import { EditReceitaModalComponent } from '../../components/edit-receita-modal/edit-receita-modal.component';
+import { AddDespesaModalComponent } from '../../components/add-despesa-modal/add-despesa-modal.component';
+import { EditDespesaModalComponent } from '../../components/edit-despesa-modal/edit-despesa-modal.component';
 import { Account } from '../../types/account.type';
 
 @Component({
   selector: 'app-main-page',
   standalone: true,
-  imports: [CommonModule, AddReceitaModalComponent, EditReceitaModalComponent],
+  imports: [
+    CommonModule,
+    AddReceitaModalComponent,
+    EditReceitaModalComponent,
+    AddDespesaModalComponent,
+    EditDespesaModalComponent
+  ],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.scss'
 })
 export class MainPageComponent implements OnInit {
   totalReceitas: number = 0;
+  totalDespesas: number = 0;
+  saldoTotal: number = 0; // ✨ NOVO: Saldo total das contas
   loadingReceitas: boolean = false;
+  loadingDespesas: boolean = false;
+  loadingSaldo: boolean = false; // ✨ NOVO: Loading do saldo
   modalReceitaAberto: boolean = false;
   modalEditarReceitaAberto: boolean = false;
+  modalDespesaAberto: boolean = false;
+  modalEditarDespesaAberto: boolean = false;
   contas: Account[] = [];
+  Math = Math; // ✨ Adicione esta linha para usar Math.abs() no template
 
   constructor(
     private dashboardService: DashboardService,
@@ -30,6 +47,8 @@ export class MainPageComponent implements OnInit {
   ngOnInit(): void {
     this.carregarContas();
     this.carregarReceitas();
+    this.carregarDespesas();
+    this.carregarSaldoTotal(); // ✨ NOVO: Carrega o saldo total
   }
 
   /**
@@ -64,6 +83,46 @@ export class MainPageComponent implements OnInit {
       }
     });
   }
+
+  /**
+   * Carrega o total de despesas do backend
+   */
+  carregarDespesas(): void {
+    this.loadingDespesas = true;
+
+    this.dashboardService.getTotalDespesas().subscribe({
+      next: (total) => {
+        this.totalDespesas = total;
+        this.loadingDespesas = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar despesas:', error);
+        this.toastr.error('Erro ao carregar despesas');
+        this.loadingDespesas = false;
+      }
+    });
+  }
+
+  /**
+   * ✨ NOVO: Carrega o saldo total de todas as contas
+   */
+  carregarSaldoTotal(): void {
+    this.loadingSaldo = true;
+
+    this.dashboardService.getSaldoTotal().subscribe({
+      next: (total) => {
+        this.saldoTotal = total;
+        this.loadingSaldo = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar saldo total:', error);
+        this.toastr.error('Erro ao carregar saldo total');
+        this.loadingSaldo = false;
+      }
+    });
+  }
+
+  // ============ RECEITAS ============
 
   /**
    * Abre o modal de adicionar receita
@@ -115,6 +174,7 @@ export class MainPageComponent implements OnInit {
   onReceitaAdicionada(): void {
     this.modalReceitaAberto = false;
     this.carregarReceitas();
+    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após adicionar receita
   }
 
   /**
@@ -123,7 +183,74 @@ export class MainPageComponent implements OnInit {
   onReceitaEditada(): void {
     this.modalEditarReceitaAberto = false;
     this.carregarReceitas();
+    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após editar receita
   }
+
+  // ============ DESPESAS ============
+
+  /**
+   * Abre o modal de adicionar despesa
+   */
+  abrirModalDespesa(): void {
+    if (this.contas.length === 0) {
+      this.toastr.warning('Você precisa ter pelo menos uma conta cadastrada');
+      return;
+    }
+
+    const contasAtivas = this.contas.filter(c => c.active === 'ACTIVE');
+    if (contasAtivas.length === 0) {
+      this.toastr.warning('Você precisa ter pelo menos uma conta ativa');
+      return;
+    }
+
+    this.modalDespesaAberto = true;
+  }
+
+  /**
+   * Fecha o modal de adicionar despesa
+   */
+  fecharModalDespesa(): void {
+    this.modalDespesaAberto = false;
+  }
+
+  /**
+   * Abre o modal de editar despesa
+   */
+  abrirModalEditarDespesa(): void {
+    if (this.contas.length === 0) {
+      this.toastr.warning('Você precisa ter pelo menos uma conta cadastrada');
+      return;
+    }
+
+    this.modalEditarDespesaAberto = true;
+  }
+
+  /**
+   * Fecha o modal de editar despesa
+   */
+  fecharModalEditarDespesa(): void {
+    this.modalEditarDespesaAberto = false;
+  }
+
+  /**
+   * Callback quando a despesa é adicionada
+   */
+  onDespesaAdicionada(): void {
+    this.modalDespesaAberto = false;
+    this.carregarDespesas();
+    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após adicionar despesa
+  }
+
+  /**
+   * Callback quando a despesa é editada
+   */
+  onDespesaEditada(): void {
+    this.modalEditarDespesaAberto = false;
+    this.carregarDespesas();
+    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após editar despesa
+  }
+
+  // ============ UTILITÁRIOS ============
 
   /**
    * Formata valor para moeda brasileira

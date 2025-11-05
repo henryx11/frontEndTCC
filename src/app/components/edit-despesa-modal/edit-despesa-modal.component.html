@@ -1,0 +1,239 @@
+<!-- src/app/components/edit-despesa-modal/edit-despesa-modal.component.html -->
+
+<div class="modal-overlay" (click)="fecharModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <!-- ETAPA 1: SELECIONAR DESPESA -->
+    <div *ngIf="etapa === 'selecionar'">
+      <div class="modal-header">
+        <h3>✏️ Editar Despesa</h3>
+
+        <!-- Botão do Filtro -->
+        <button class="btn-filtro" (click)="toggleFiltroData()" title="Filtrar por data">
+          🗓️
+        </button>
+
+        <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <!-- Painel de Filtro de Data -->
+      <div class="filtro-data-panel" *ngIf="mostrarFiltroData">
+        <div class="filtro-content">
+          <h4>📅 Filtrar por Período</h4>
+
+          <div class="filtro-inputs">
+            <div class="filtro-group">
+              <label for="dataInicio">Data Início</label>
+              <input
+                type="date"
+                id="dataInicio"
+                [(ngModel)]="dataInicio"
+                class="filtro-date-input"
+              />
+            </div>
+
+            <div class="filtro-group">
+              <label for="dataFim">Data Fim</label>
+              <input
+                type="date"
+                id="dataFim"
+                [(ngModel)]="dataFim"
+                class="filtro-date-input"
+              />
+            </div>
+          </div>
+
+          <div class="filtro-actions">
+            <button class="btn-limpar" (click)="limparFiltro()">
+              Limpar
+            </button>
+            <button class="btn-aplicar" (click)="aplicarFiltro()">
+              Aplicar Filtro
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <p class="instrucao">
+          Selecione uma despesa para editar
+          <span class="contador" *ngIf="despesasFiltradas.length !== despesas.length">
+            ({{ despesasFiltradas.length }} de {{ despesas.length }})
+          </span>
+        </p>
+
+        <div class="loading-state" *ngIf="loadingDespesas">
+          <div class="spinner"></div>
+          <p>Carregando despesas...</p>
+        </div>
+
+        <div class="lista-despesas" *ngIf="!loadingDespesas">
+          <div class="despesa-item"
+               *ngFor="let despesa of despesasFiltradas"
+               (click)="selecionarDespesa(despesa)">
+            <div class="despesa-info">
+              <h4>{{ despesa.description }}</h4>
+              <p class="despesa-detalhes">
+                <span class="conta">{{ despesa.accounts.name }}</span>
+                <span class="categoria">{{ despesa.category.description }}</span>
+              </p>
+              <p class="despesa-data">{{ formatarData(despesa.payDate) }}</p>
+            </div>
+            <div class="despesa-valor">
+              R$ {{ formatarValor(despesa.value) }}
+            </div>
+          </div>
+
+          <div class="empty-state" *ngIf="despesasFiltradas.length === 0 && despesas.length > 0">
+            <p>🔍 Nenhuma despesa encontrada neste período</p>
+            <small>Tente ajustar o filtro de data</small>
+            <button class="btn-limpar-filtro" (click)="limparFiltro()">
+              Remover Filtro
+            </button>
+          </div>
+
+          <div class="empty-state" *ngIf="despesas.length === 0">
+            <p>📋 Nenhuma despesa encontrada</p>
+            <small>Adicione uma despesa primeiro para poder editá-la</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ETAPA 2: EDITAR DESPESA -->
+    <div *ngIf="etapa === 'editar'">
+      <div class="modal-header">
+        <div class="header-with-back">
+          <button class="btn-voltar" (click)="voltarParaLista()">
+            ← Voltar
+          </button>
+          <h3>Editando: {{ despesaSelecionada?.description }}</h3>
+        </div>
+        <button class="btn-fechar-modal" (click)="fecharModal()" title="Fechar">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <form [formGroup]="editForm" (ngSubmit)="salvarEdicao()">
+          <!-- Conta -->
+          <div class="form-group">
+            <label for="conta">Conta *</label>
+            <select
+              id="conta"
+              formControlName="conta"
+              [class.invalid]="editForm.get('conta')?.invalid && editForm.get('conta')?.touched"
+            >
+              <option value="">Selecione a conta</option>
+              <option
+                *ngFor="let conta of contasAtivas"
+                [value]="conta.uuid"
+              >
+                {{ conta.name }} ({{ conta.bank?.name }})
+              </option>
+            </select>
+            <small class="error-message" *ngIf="editForm.get('conta')?.invalid && editForm.get('conta')?.touched">
+              Selecione uma conta
+            </small>
+          </div>
+
+          <!-- Valor -->
+          <div class="form-group">
+            <label for="valor">Valor da Despesa *</label>
+            <input
+              type="number"
+              id="valor"
+              formControlName="valor"
+              placeholder="0,00"
+              step="0.01"
+              min="0.01"
+              [class.invalid]="editForm.get('valor')?.invalid && editForm.get('valor')?.touched"
+            />
+            <small class="error-message" *ngIf="editForm.get('valor')?.hasError('required') && editForm.get('valor')?.touched">
+              Informe o valor da despesa
+            </small>
+            <small class="error-message" *ngIf="editForm.get('valor')?.hasError('min') && editForm.get('valor')?.touched">
+              O valor deve ser maior que zero
+            </small>
+          </div>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label for="categoria">Categoria *</label>
+            <select
+              id="categoria"
+              formControlName="categoria"
+              [class.invalid]="editForm.get('categoria')?.invalid && editForm.get('categoria')?.touched"
+              [disabled]="loadingCategorias"
+            >
+              <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+              <option
+                *ngFor="let categoria of categorias"
+                [value]="categoria.uuid"
+              >
+                {{ categoria.icon }} {{ categoria.description }}
+              </option>
+            </select>
+            <small class="error-message" *ngIf="editForm.get('categoria')?.invalid && editForm.get('categoria')?.touched">
+              Selecione uma categoria
+            </small>
+          </div>
+
+          <!-- Data -->
+          <div class="form-group">
+            <label for="data">Data de Pagamento *</label>
+            <input
+              type="date"
+              id="data"
+              formControlName="data"
+              [class.invalid]="editForm.get('data')?.invalid && editForm.get('data')?.touched"
+            />
+            <small class="error-message" *ngIf="editForm.get('data')?.invalid && editForm.get('data')?.touched">
+              Informe a data da despesa
+            </small>
+          </div>
+
+          <!-- Descrição -->
+          <div class="form-group">
+            <label for="descricao">Descrição *</label>
+            <textarea
+              id="descricao"
+              formControlName="descricao"
+              placeholder="Ex: Conta de luz"
+              rows="3"
+              [class.invalid]="editForm.get('descricao')?.invalid && editForm.get('descricao')?.touched"
+            ></textarea>
+            <small class="error-message" *ngIf="editForm.get('descricao')?.invalid && editForm.get('descricao')?.touched">
+              Informe uma descrição para a despesa
+            </small>
+          </div>
+
+          <!-- Botões -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn-excluir"
+              (click)="excluirDespesa()"
+              [disabled]="loading"
+              title="Excluir despesa permanentemente"
+            >
+              <span *ngIf="!loading">🗑️ Excluir</span>
+              <span *ngIf="loading">Excluindo...</span>
+            </button>
+            <button
+              type="submit"
+              class="btn-salvar"
+              [disabled]="editForm.invalid || loading || loadingCategorias"
+            >
+              <span *ngIf="!loading">Salvar Alterações</span>
+              <span *ngIf="loading">Salvando...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
