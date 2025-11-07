@@ -1,20 +1,10 @@
-<!-- src/app/pages/main-page/main-page.component.html -->
-
 <div class="dashboard-container">
   <!-- Cards -->
   <div class="cards">
-    <!-- ✨ Card de Saldo Atual - ESTRUTURA CORRIGIDA -->
+    <!-- Card Saldo Total -->
     <div class="card saldo">
-      <div class="card-header">
-        <p class="title">Saldo Atual</p>
-        <!-- Espaço vazio para manter alinhamento com outros cards -->
-        <div class="card-placeholder"></div>
-      </div>
-      <p class="value"
-         *ngIf="!loadingSaldo"
-         [class.positivo]="saldoTotal > 0"
-         [class.negativo]="saldoTotal < 0"
-         [class.zero]="saldoTotal === 0">
+      <p class="title">Saldo Atual</p>
+      <p class="value" *ngIf="!loadingSaldo" [class.negative]="saldoTotal < 0">
         {{ saldoTotal >= 0 ? '+' : '' }} R$ {{ formatarMoeda(Math.abs(saldoTotal)) }}
       </p>
       <p class="value loading" *ngIf="loadingSaldo">
@@ -22,15 +12,15 @@
       </p>
     </div>
 
-    <!-- Card de Despesas -->
+    <!-- Card Despesas -->
     <div class="card despesas">
       <div class="card-header">
         <p class="title">Despesas do Mês</p>
         <div class="card-buttons">
-          <button class="btn-add-despesa" (click)="abrirModalDespesa()" title="Adicionar Despesa">
+          <button class="btn-add" (click)="abrirModalDespesa()" title="Adicionar Despesa">
             + Adicionar
           </button>
-          <button class="btn-edit-despesa" (click)="abrirModalEditarDespesa()" title="Editar Despesa">
+          <button class="btn-edit" (click)="abrirModalEditarDespesa()" title="Editar Despesa">
             ✏️ Editar
           </button>
         </div>
@@ -43,7 +33,7 @@
       </p>
     </div>
 
-    <!-- Card de Receitas -->
+    <!-- Card Receitas -->
     <div class="card receitas">
       <div class="card-header">
         <p class="title">Receitas do Mês</p>
@@ -63,12 +53,11 @@
         Carregando...
       </p>
     </div>
-
   </div>
 
-  <!-- Seção de gráficos ou relatórios -->
+  <!-- Seção de gráficos -->
   <div class="content-box">
-    <p>Área para gráficos ou relatórios</p>
+    <app-charts></app-charts>
   </div>
 
   <!-- Modal de Adicionar Receita -->

@@ -1,0 +1,82 @@
+<div class="charts-container">
+  <!-- Header -->
+  <div class="charts-header">
+    <h2>📊 Análise Financeira</h2>
+    <button class="btn-refresh" (click)="atualizarGraficos()" [disabled]="loading">
+      <span class="icon">🔄</span>
+      Atualizar
+    </button>
+  </div>
+
+  <!-- Estado de carregamento inicial -->
+  <div class="loading-state" *ngIf="loading && semDados">
+    <div class="spinner"></div>
+    <p>Carregando gráficos...</p>
+  </div>
+
+  <!-- Estado sem dados -->
+  <div class="empty-state" *ngIf="!loading && semDados">
+    <div class="empty-icon">📊</div>
+    <h3>Nenhum dado disponível</h3>
+    <p>Adicione transações para visualizar os gráficos</p>
+  </div>
+
+  <!-- Grid de Gráficos - SEMPRE RENDERIZADO -->
+  <div class="charts-grid">
+
+    <!-- Gráfico de Linha - Evolução Temporal -->
+    <div class="chart-card full-width">
+      <div class="chart-header">
+        <h3>📈 Receitas vs Despesas (Últimos 6 meses)</h3>
+      </div>
+      <div class="chart-content">
+        <!-- Loading específico -->
+        <div class="chart-loading" *ngIf="loadingLine">
+          <div class="spinner-small"></div>
+          <p>Carregando...</p>
+        </div>
+        <!-- Canvas sempre presente, apenas oculto -->
+        <div class="chart-wrapper" [style.display]="loadingLine ? 'none' : 'block'">
+          <canvas #lineChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Pizza - Despesas por Categoria -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>🍕 Despesas por Categoria</h3>
+      </div>
+      <div class="chart-content">
+        <!-- Loading específico -->
+        <div class="chart-loading" *ngIf="loadingPie">
+          <div class="spinner-small"></div>
+          <p>Carregando...</p>
+        </div>
+        <!-- Canvas sempre presente, apenas oculto -->
+        <div class="chart-wrapper" [style.display]="loadingPie ? 'none' : 'block'">
+          <canvas #pieChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico de Barras - Top 5 Categorias -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>📊 Top 5 Categorias de Despesas</h3>
+      </div>
+      <div class="chart-content">
+        <!-- Loading específico -->
+        <div class="chart-loading" *ngIf="loadingBar">
+          <div class="spinner-small"></div>
+          <p>Carregando...</p>
+        </div>
+        <!-- Canvas sempre presente, apenas oculto -->
+        <div class="chart-wrapper" [style.display]="loadingBar ? 'none' : 'block'">
+          <canvas #barChart></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

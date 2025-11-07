@@ -9,6 +9,7 @@ import { AddReceitaModalComponent } from '../../components/add-receita-modal/add
 import { EditReceitaModalComponent } from '../../components/edit-receita-modal/edit-receita-modal.component';
 import { AddDespesaModalComponent } from '../../components/add-despesa-modal/add-despesa-modal.component';
 import { EditDespesaModalComponent } from '../../components/edit-despesa-modal/edit-despesa-modal.component';
+import { ChartsComponent } from '../../components/charts/charts.component'; // ← NOVO: Import do componente de gráficos
 import { Account } from '../../types/account.type';
 
 @Component({
@@ -19,7 +20,8 @@ import { Account } from '../../types/account.type';
     AddReceitaModalComponent,
     EditReceitaModalComponent,
     AddDespesaModalComponent,
-    EditDespesaModalComponent
+    EditDespesaModalComponent,
+    ChartsComponent // ← NOVO: Adiciona o componente de gráficos
   ],
   templateUrl: './main-page.component.html',
   styleUrl: './main-page.component.scss'
@@ -27,16 +29,16 @@ import { Account } from '../../types/account.type';
 export class MainPageComponent implements OnInit {
   totalReceitas: number = 0;
   totalDespesas: number = 0;
-  saldoTotal: number = 0; // ✨ NOVO: Saldo total das contas
+  saldoTotal: number = 0;
   loadingReceitas: boolean = false;
   loadingDespesas: boolean = false;
-  loadingSaldo: boolean = false; // ✨ NOVO: Loading do saldo
+  loadingSaldo: boolean = false;
   modalReceitaAberto: boolean = false;
   modalEditarReceitaAberto: boolean = false;
   modalDespesaAberto: boolean = false;
   modalEditarDespesaAberto: boolean = false;
   contas: Account[] = [];
-  Math = Math; // ✨ Adicione esta linha para usar Math.abs() no template
+  Math = Math; // Para usar Math.abs() no template
 
   constructor(
     private dashboardService: DashboardService,
@@ -48,7 +50,7 @@ export class MainPageComponent implements OnInit {
     this.carregarContas();
     this.carregarReceitas();
     this.carregarDespesas();
-    this.carregarSaldoTotal(); // ✨ NOVO: Carrega o saldo total
+    this.carregarSaldoTotal();
   }
 
   /**
@@ -104,7 +106,7 @@ export class MainPageComponent implements OnInit {
   }
 
   /**
-   * ✨ NOVO: Carrega o saldo total de todas as contas
+   * Carrega o saldo total de todas as contas
    */
   carregarSaldoTotal(): void {
     this.loadingSaldo = true;
@@ -174,7 +176,7 @@ export class MainPageComponent implements OnInit {
   onReceitaAdicionada(): void {
     this.modalReceitaAberto = false;
     this.carregarReceitas();
-    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após adicionar receita
+    this.carregarSaldoTotal();
   }
 
   /**
@@ -183,7 +185,7 @@ export class MainPageComponent implements OnInit {
   onReceitaEditada(): void {
     this.modalEditarReceitaAberto = false;
     this.carregarReceitas();
-    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após editar receita
+    this.carregarSaldoTotal();
   }
 
   // ============ DESPESAS ============
@@ -238,7 +240,7 @@ export class MainPageComponent implements OnInit {
   onDespesaAdicionada(): void {
     this.modalDespesaAberto = false;
     this.carregarDespesas();
-    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após adicionar despesa
+    this.carregarSaldoTotal();
   }
 
   /**
@@ -247,7 +249,7 @@ export class MainPageComponent implements OnInit {
   onDespesaEditada(): void {
     this.modalEditarDespesaAberto = false;
     this.carregarDespesas();
-    this.carregarSaldoTotal(); // ✨ NOVO: Atualiza saldo após editar despesa
+    this.carregarSaldoTotal();
   }
 
   // ============ UTILITÁRIOS ============
