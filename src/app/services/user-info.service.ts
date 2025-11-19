@@ -20,7 +20,7 @@ export interface UserInfo {
   providedIn: 'root'
 })
 export class UserInfoService {
-  private readonly apiUrl = 'http://26.59.168.146:8090/users';
+  private readonly apiUrl = 'http://26.59.168.146:8090';
 
   constructor(private httpClient: HttpClient) {}
 
@@ -28,7 +28,7 @@ export class UserInfoService {
    * Busca informações do usuário logado
    */
   getCurrentUserInfo(): Observable<UserInfo> {
-    return this.httpClient.get<UserInfo>(`${this.apiUrl}/users`);
+    return this.httpClient.get<UserInfo>(`${this.apiUrl}/users/me`);
   }
 
   /**
@@ -38,9 +38,8 @@ export class UserInfoService {
     const medals: { [key: string]: string } = {
       'OURO': 'medalha_ouro.png',
       'PRATA': 'medalha_prata.png',
-      'SILVER': 'medalha_prata.png',
       'BRONZE': 'medalha_bronze.png'
     };
-    return medals[rank.toUpperCase()] || 'medalha_bronze.png';
+    return medals[rank];
   }
 }
