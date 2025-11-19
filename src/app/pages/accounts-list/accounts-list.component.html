@@ -49,7 +49,44 @@
   <div class="fatura" *ngIf="contaSelecionada && getContaSelecionada()">
     <div class="fatura-header">
       <div class="fatura-title">
-        <h3>{{ getContaSelecionada()?.name }}</h3>
+        <!-- Modo de visualização -->
+        <div class="nome-container" *ngIf="!editandoNome">
+          <h3>{{ getContaSelecionada()?.name }}</h3>
+          <button class="btn-editar-nome" (click)="iniciarEdicaoNome()" title="Editar nome">
+            ✏️
+          </button>
+        </div>
+
+        <!-- Modo de edição -->
+        <div class="nome-edicao" *ngIf="editandoNome">
+          <input
+            type="text"
+            [(ngModel)]="nomeEditado"
+            (keydown)="onKeyDown($event)"
+            [disabled]="salvandoNome"
+            class="input-nome"
+            placeholder="Nome da conta"
+            autofocus
+          />
+          <div class="edicao-actions">
+            <button
+              class="btn-salvar-nome"
+              (click)="salvarNome()"
+              [disabled]="salvandoNome"
+              title="Salvar (Enter)">
+              <span *ngIf="!salvandoNome">✓</span>
+              <span *ngIf="salvandoNome">⏳</span>
+            </button>
+            <button
+              class="btn-cancelar-nome"
+              (click)="cancelarEdicao()"
+              [disabled]="salvandoNome"
+              title="Cancelar (Esc)">
+              ✕
+            </button>
+          </div>
+        </div>
+
         <p class="fatura-periodo">{{ getContaSelecionada()?.bank?.name }}</p>
       </div>
     </div>
@@ -73,7 +110,7 @@
 
     <div class="fatura-actions">
       <button class="btn-pagar" (click)="abrirModalTransferencia()">
-         Nova Transferência
+        Nova Transferência
       </button>
 
       <button class="btn-detalhes" (click)="verExtrato()">

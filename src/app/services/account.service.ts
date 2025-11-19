@@ -31,12 +31,31 @@ export class AccountService {
     return this.httpClient.get<Account[]>(`${this.apiUrl}`);
   }
 
+  // Atualizar conta
+  updateAccount(account: Account): Observable<Account> {
+    const payload = {
+      uuid: account.uuid,
+      name: account.name,
+      balance: account.balance,
+      bank: {
+        uuid: account.bank.uuid,
+        name: account.bank.name
+      },
+      type: {
+        uuid: account.type.uuid,
+        description: account.type.description
+      }
+    };
+
+    return this.httpClient.put<Account>(`${this.apiUrl}/${account.uuid}`, payload);
+  }
+
   // Desativar conta
   deactivateAccount(accountUuid: string): Observable<any> {
     return this.httpClient.delete(`${this.apiUrl}/deactivate/${accountUuid}`);
   }
 
-// Ativar conta
+  // Ativar conta
   activateAccount(accountUuid: string): Observable<any> {
     return this.httpClient.put(`${this.apiUrl}/activate/${accountUuid}`, {});
   }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
 import { Account } from '../../types/account.type';
 import { ToastrService } from 'ngx-toastr';
@@ -9,7 +10,7 @@ import { TransferModalComponent } from '../../components/transfer-modal/transfer
 @Component({
   selector: 'app-accounts-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, TransferModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, TransferModalComponent],
   templateUrl: './accounts-list.component.html',
   styleUrls: ['./accounts-list.component.scss']
 })
@@ -18,6 +19,11 @@ export class AccountsListComponent implements OnInit {
   contaSelecionada: string | null = null;
   loading: boolean = false;
   modalTransferenciaAberto: boolean = false;
+
+  // Controle da edição inline
+  editandoNome: boolean = false;
+  nomeEditado: string = '';
+  salvandoNome: boolean = false;
 
   constructor(
     private accountService: AccountService,
@@ -55,6 +61,8 @@ export class AccountsListComponent implements OnInit {
       this.contaSelecionada = null;
     } else {
       this.contaSelecionada = contaId;
+      // Cancela edição ao trocar de conta
+      this.cancelarEdicao();
     }
   }
 
@@ -73,6 +81,7 @@ export class AccountsListComponent implements OnInit {
    */
   fecharDetalhes(): void {
     this.contaSelecionada = null;
+    this.cancelarEdicao();
   }
 
   /**
@@ -179,5 +188,93 @@ export class AccountsListComponent implements OnInit {
     this.modalTransferenciaAberto = false;
     this.carregarContas();
     this.fecharDetalhes();
+  }
+
+  // ========== MÉTODOS DE EDIÇÃO INLINE ==========
+
+  /**
+   * Inicia a edição do nome da conta
+   */
+  iniciarEdicaoNome(): void {
+    const conta = this.getContaSelecionada();
+    if (conta) {
+      this.editandoNome = true;
+      this.nomeEditado = conta.name;
+    }
+  }
+
+  /**
+   * Cancela a edição do nome
+   */
+  cancelarEdicao(): void {
+    this.editandoNome = false;
+    this.nomeEditado = '';
+  }
+
+  /**
+   * Salva o novo nome da conta
+   */
+  salvarNome(): void {
+    const conta = this.getContaSelecionada();
+
+    if (!conta) {
+      this.toastr.error('Nenhuma conta selecionada');
+      return;
+    }
+
+    // Validações
+    const nomeFormatado = this.nomeEditado.trim();
+
+    if (!nomeFormatado) {
+      this.toastr.error('O nome da conta não pode estar vazio');
+      return;
+    }
+
+    if (nomeFormatado === conta.name) {
+      this.cancelarEdicao();
+      return;
+    }
+
+    // Cria uma cópia da conta com o novo nome
+    const contaAtualizada: Account = {
+      ...conta,
+      name: nomeFormatado
+    };
+
+    this.salvandoNome = true;
+
+    this.accountService.updateAccount(contaAtualizada).subscribe({
+      next: (response) => {
+        // Atualiza a conta na lista local
+        const index = this.contas.findIndex(c => c.uuid === conta.uuid);
+        if (index !== -1) {
+          this.contas[index] = response;
+        }
+
+        this.toastr.success('Nome da conta atualizado com sucesso!');
+        this.editandoNome = false;
+        this.nomeEditado = '';
+        this.salvandoNome = false;
+      },
+      error: (error) => {
+        console.error('Erro ao atualizar nome da conta:', error);
+        const mensagemErro = error.error?.message || 'Erro ao atualizar o nome da conta. Tente novamente.';
+        this.toastr.error(mensagemErro);
+        this.salvandoNome = false;
+      }
+    });
+  }
+
+  /**
+   * Manipula teclas no campo de edição
+   */
+  onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.salvarNome();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelarEdicao();
+    }
   }
 }
