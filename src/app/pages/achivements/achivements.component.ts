@@ -23,8 +23,6 @@ export class AchivementsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAchievements();
-    // Verifica novas conquistas a cada 30 segundos
-    setInterval(() => this.checkForNewAchievements(), 30000);
   }
 
   loadAchievements(): void {
@@ -41,60 +39,6 @@ export class AchivementsComponent implements OnInit {
         this.isLoading = false;
       }
     });
-  }
-
-  checkForNewAchievements(): void {
-    const previousAchievements = [...this.achievements];
-
-    this.achievementsService.getAchievements().subscribe({
-      next: (data) => {
-        // Verifica se alguma conquista foi desbloqueada
-        data.forEach(newAchievement => {
-          const oldAchievement = previousAchievements.find(a => a.uuid === newAchievement.uuid);
-
-          // Se a conquista estava incompleta e agora está completa
-          if (oldAchievement && !oldAchievement.completed && newAchievement.completed) {
-            this.showAchievementUnlocked(newAchievement);
-          }
-        });
-
-        this.achievements = data;
-        this.distributeAchievements();
-      },
-      error: (error) => {
-        console.error('Erro ao verificar novas conquistas:', error);
-      }
-    });
-  }
-
-  showAchievementUnlocked(achievement: Achievement): void {
-    // Toca som de notificação
-    this.playNotificationSound();
-
-    // Exibe notificação usando Toastr com configurações customizadas
-    this.toastr.success(
-      `🏆 ${achievement.title}`,
-      'Conquista Desbloqueada!',
-      {
-        timeOut: 5000,
-        progressBar: true,
-        closeButton: true,
-        positionClass: 'toast-top-center',
-        enableHtml: true
-      }
-    );
-  }
-
-  playNotificationSound(): void {
-    try {
-      const audio = new Audio('sounds/notification-achievement-unlocked.mp3');
-      audio.volume = 0.5; // Volume a 50%
-      audio.play().catch(error => {
-        console.log('Erro ao tocar som:', error);
-      });
-    } catch (error) {
-      console.log('Erro ao carregar áudio:', error);
-    }
   }
 
   distributeAchievements(): void {
