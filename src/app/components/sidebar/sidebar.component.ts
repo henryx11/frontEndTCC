@@ -1,27 +1,37 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { CommonModule } from '@angular/common';
 import { EditProfileModalComponent } from '../edit-profile-modal/edit-profile-modal.component';
 import { UserService } from '../../services/user.service';
+import { UserInfoService, UserInfo } from '../../services/user-info.service';
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true,
   imports: [FontAwesomeModule, CommonModule, EditProfileModalComponent],
   templateUrl: './sidebar.component.html',
   styleUrl: './sidebar.component.scss'
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
   faArrowLeft = faArrowLeft;
   userName: string | null = null;
   modalEditarPerfilAberto: boolean = false;
+  isAdmin: boolean = false;
+  userRank: string = 'BRONZE';
+  medalImage: string = 'medalha_bronze.png';
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private userInfoService: UserInfoService
   ) {
     this.carregarDadosUsuario();
+  }
+
+  ngOnInit(): void {
+    this.loadUserInfo();
   }
 
   /**
@@ -30,6 +40,31 @@ export class SidebarComponent {
   carregarDadosUsuario(): void {
     const userInfo = this.userService.getUserInfo();
     this.userName = userInfo?.name || null;
+  }
+
+  /**
+   * Carrega informações completas do usuário (rank, xp, etc.)
+   */
+  loadUserInfo(): void {
+    this.userInfoService.getCurrentUserInfo().subscribe({
+      next: (userInfo: UserInfo) => {
+        this.userRank = userInfo.rank;
+        this.medalImage = this.userInfoService.getMedalImage(userInfo.rank);
+        // Atualiza o nome também se disponível
+        if (userInfo.name) {
+          this.userName = userInfo.name;
+        }
+        // Verifica se é admin baseado nas authorities
+        if (userInfo.authorities) {
+          this.isAdmin = userInfo.authorities.some(auth => auth.authority === 'ROLE_ADMIN');
+        }
+      },
+      error: (error) => {
+        console.error('Erro ao carregar informações do usuário:', error);
+        // Em caso de erro, usa valores padrão
+        this.medalImage = this.userInfoService.getMedalImage('BRONZE');
+      }
+    });
   }
 
   goToAccounts(): void {
@@ -41,7 +76,11 @@ export class SidebarComponent {
   }
 
   goToDashboard(): void {
-    this.router.navigate(['/main-page']);
+    if (this.isAdmin) {
+      this.router.navigate(['/admin-dashboard']);
+    } else {
+      this.router.navigate(['/main-page']);
+    }
   }
 
   goToCreditCard(): void {
@@ -78,19 +117,11 @@ export class SidebarComponent {
   /**
    * Callback quando o perfil é atualizado
    */
-  /**
-   * Callback quando o perfil é atualizado
-   */
   onPerfilAtualizado(): void {
-    console.log('🔄 Perfil atualizado - recarregando nome...'); // DEBUG
     this.modalEditarPerfilAberto = false;
-
-    // Pequeno delay para garantir que o sessionStorage foi atualizado
     setTimeout(() => {
       this.carregarDadosUsuario();
-      console.log('👤 Novo nome:', this.userName); // DEBUG
+      this.loadUserInfo();
     }, 100);
   }
-
-
 }

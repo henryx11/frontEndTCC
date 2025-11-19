@@ -19,7 +19,12 @@
           [class.completed]="achievement.completed">
 
           <div class="achievement-image-placeholder">
-            <span class="trophy-icon" *ngIf="achievement.completed">🏆</span>
+            <img
+              *ngIf="achievement.completed"
+              src="guaxi_trofeu.png"
+              alt="Troféu"
+              class="trophy-image"
+            />
             <span class="lock-icon" *ngIf="!achievement.completed">🔒</span>
           </div>
 
