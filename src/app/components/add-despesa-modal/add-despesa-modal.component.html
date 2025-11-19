@@ -1,5 +1,3 @@
-<!-- src/app/components/add-despesa-modal/add-despesa-modal.component.html -->
-
 <div class="modal-overlay" (click)="fecharModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
@@ -61,7 +59,7 @@
             [class.invalid]="despesaForm.get('categoria')?.invalid && despesaForm.get('categoria')?.touched"
             [disabled]="loadingCategorias"
           >
-            <option value="">{{ loadingCategorias ? 'Carregando categorias...' : 'Selecione uma categoria' }}</option>
+            <option value="">{{ loadingCategorias ? 'Carregando...' : 'Selecione a categoria' }}</option>
             <option
               *ngFor="let categoria of categorias"
               [value]="categoria.uuid"
@@ -74,9 +72,27 @@
           </small>
         </div>
 
+        <!-- Descrição -->
+        <div class="form-group">
+          <label for="descricao">Descrição *</label>
+          <input
+            type="text"
+            id="descricao"
+            formControlName="descricao"
+            placeholder="Ex: Supermercado"
+            [class.invalid]="despesaForm.get('descricao')?.invalid && despesaForm.get('descricao')?.touched"
+          />
+          <small class="error-message" *ngIf="despesaForm.get('descricao')?.hasError('required') && despesaForm.get('descricao')?.touched">
+            Informe a descrição
+          </small>
+          <small class="error-message" *ngIf="despesaForm.get('descricao')?.hasError('minlength') && despesaForm.get('descricao')?.touched">
+            A descrição deve ter pelo menos 3 caracteres
+          </small>
+        </div>
+
         <!-- Data -->
         <div class="form-group">
-          <label for="data">Data de Pagamento *</label>
+          <label for="data">Data *</label>
           <input
             type="date"
             id="data"
@@ -84,27 +100,12 @@
             [class.invalid]="despesaForm.get('data')?.invalid && despesaForm.get('data')?.touched"
           />
           <small class="error-message" *ngIf="despesaForm.get('data')?.invalid && despesaForm.get('data')?.touched">
-            Informe a data da despesa
-          </small>
-        </div>
-
-        <!-- Descrição -->
-        <div class="form-group">
-          <label for="descricao">Descrição *</label>
-          <textarea
-            id="descricao"
-            formControlName="descricao"
-            placeholder="Ex: Conta de luz"
-            rows="3"
-            [class.invalid]="despesaForm.get('descricao')?.invalid && despesaForm.get('descricao')?.touched"
-          ></textarea>
-          <small class="error-message" *ngIf="despesaForm.get('descricao')?.invalid && despesaForm.get('descricao')?.touched">
-            Informe uma descrição para a despesa
+            Selecione a data
           </small>
         </div>
 
         <!-- Botões -->
-        <div class="form-actions">
+        <div class="modal-actions">
           <button
             type="button"
             class="btn-cancelar"
@@ -115,11 +116,10 @@
           </button>
           <button
             type="submit"
-            class="btn-salvar"
-            [disabled]="despesaForm.invalid || loading || loadingCategorias"
+            class="btn-adicionar"
+            [disabled]="loading || despesaForm.invalid"
           >
-            <span *ngIf="!loading">Adicionar Despesa</span>
-            <span *ngIf="loading">Adicionando...</span>
+            {{ loading ? 'Adicionando...' : 'Adicionar Despesa' }}
           </button>
         </div>
       </form>

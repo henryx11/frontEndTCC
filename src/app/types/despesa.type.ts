@@ -4,8 +4,7 @@ export interface Despesa {
   uuid: string;
   value: number;
   description: string;
-  payDate: string;
-  dateRegistration?: string; // Alguns podem ter
+  dateRegistration: string | null; // ← CORRIGIDO
   category: {
     uuid: string;
     description: string;
@@ -23,7 +22,7 @@ export interface Despesa {
 export interface CreateDespesaRequest {
   value: number;
   description: string;
-  payDate: string;
+  dateRegistration: string; // ← CORRIGIDO
   category: {
     uuid: string;
   };
@@ -35,7 +34,7 @@ export interface CreateDespesaRequest {
 export interface UpdateDespesaRequest {
   value: number;
   description: string;
-  payDate: string;
+  dateRegistration: string; // ← CORRIGIDO
   category: {
     uuid: string;
   };
@@ -48,7 +47,7 @@ export interface DespesaResponse {
   uuid: string;
   value: number;
   description: string;
-  payDate: string;
+  dateRegistration: string | null; // ← CORRIGIDO
   category: {
     uuid: string;
     description: string;

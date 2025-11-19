@@ -1,5 +1,3 @@
-// src/app/components/add-despesa-modal/add-despesa-modal.component.ts
-
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -69,12 +67,14 @@ export class AddDespesaModalComponent implements OnInit {
    * Inicializa o formulário com validações
    */
   inicializarFormulario(): void {
+    const dataAtual = new Date().toISOString().split('T')[0];
+
     this.despesaForm = this.formBuilder.group({
       conta: ['', Validators.required],
       valor: ['', [Validators.required, Validators.min(0.01)]],
       categoria: ['', Validators.required],
       descricao: ['', [Validators.required, Validators.minLength(3)]],
-      data: [this.despesaService.getCurrentDate(), Validators.required]
+      data: [dataAtual, Validators.required]
     });
   }
 
@@ -92,7 +92,7 @@ export class AddDespesaModalComponent implements OnInit {
     const despesaData = {
       value: parseFloat(formValue.valor),
       description: formValue.descricao,
-      payDate: formValue.data,
+      dateRegistration: this.ajustarDataParaBackend(formValue.data),
       accounts: {
         uuid: formValue.conta
       },
@@ -101,16 +101,19 @@ export class AddDespesaModalComponent implements OnInit {
       }
     };
 
+    console.log('📤 Enviando despesa para backend:', despesaData);
+
     this.loading = true;
 
     this.despesaService.createDespesa(despesaData).subscribe({
       next: (response) => {
+        console.log('✅ Despesa criada:', response);
         this.toastr.success('Despesa adicionada com sucesso!');
         this.despesaAdicionada.emit();
         this.fecharModal();
       },
       error: (error) => {
-        console.error('Erro ao adicionar despesa:', error);
+        console.error('❌ Erro ao adicionar despesa:', error);
         const mensagemErro = error?.error?.message || 'Erro ao adicionar despesa. Tente novamente.';
         this.toastr.error(mensagemErro);
         this.loading = false;
@@ -123,5 +126,17 @@ export class AddDespesaModalComponent implements OnInit {
    */
   fecharModal(): void {
     this.fechar.emit();
+  }
+
+  /**
+   * Ajusta a data compensando o problema de timezone do backend
+   * O backend interpreta como UTC, então adicionamos 1 dia
+   */
+  /**
+   * Formata a data para o backend
+   */
+  private ajustarDataParaBackend(data: string): string {
+    // Apenas retorna a data no formato correto, sem ajuste
+    return data;
   }
 }

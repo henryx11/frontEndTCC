@@ -101,8 +101,8 @@ export class EditDespesaModalComponent implements OnInit {
     this.despesaService.buscarDespesasPorPeriodo(this.dataInicio, this.dataFim).subscribe({
       next: (despesas) => {
         this.despesasFiltradas = despesas.sort((a, b) => {
-          const dateA = a.payDate || '';
-          const dateB = b.payDate || '';
+          const dateA = a.dateRegistration || '';
+          const dateB = b.dateRegistration || '';
           return dateB.localeCompare(dateA);
         });
         this.loadingDespesas = false;
@@ -141,8 +141,8 @@ export class EditDespesaModalComponent implements OnInit {
     this.despesaService.getAllDespesas().subscribe({
       next: (despesas) => {
         this.despesas = despesas.sort((a, b) => {
-          const dateA = a.payDate || '';
-          const dateB = b.payDate || '';
+          const dateA = a.dateRegistration || '';
+          const dateB = b.dateRegistration || '';
           return dateB.localeCompare(dateA);
         });
         this.despesasFiltradas = [...this.despesas];
@@ -202,7 +202,7 @@ export class EditDespesaModalComponent implements OnInit {
       valor: [this.despesaSelecionada.value, [Validators.required, Validators.min(0.01)]],
       categoria: [this.despesaSelecionada.category.uuid, Validators.required],
       descricao: [this.despesaSelecionada.description, [Validators.required, Validators.minLength(3)]],
-      data: [this.despesaService.formatDate(this.despesaSelecionada.payDate), Validators.required]
+      data: [this.despesaService.formatDate(this.despesaSelecionada.dateRegistration), Validators.required]
     });
   }
 
@@ -217,10 +217,13 @@ export class EditDespesaModalComponent implements OnInit {
 
     const formValue = this.editForm.value;
 
+    // Converter data de DD/MM/YYYY para YYYY-MM-DD
+    const dataConvertida = this.converterDataParaBackend(formValue.data);
+
     const updateData = {
       value: parseFloat(formValue.valor),
       description: formValue.descricao,
-      payDate: formValue.data,
+      dateRegistration: dataConvertida,
       accounts: {
         uuid: formValue.conta
       },
@@ -306,6 +309,34 @@ export class EditDespesaModalComponent implements OnInit {
     } catch {
       return 'Data inválida';
     }
+  }
+
+  /**
+   * Converte data de DD/MM/YYYY para YYYY-MM-DD e ajusta timezone
+   */
+  private converterDataParaBackend(data: string): string {
+    if (!data) return '';
+
+    // Se já estiver em YYYY-MM-DD, apenas ajustar
+    if (/^\d{4}-\d{2}-\d{2}$/.test(data)) {
+      const date = new Date(data + 'T12:00:00');
+      date.setDate(date.getDate() + 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    // Converter de DD/MM/YYYY para YYYY-MM-DD
+    const [day, month, year] = data.split('/');
+    const date = new Date(`${year}-${month}-${day}T12:00:00`);
+    date.setDate(date.getDate() + 1);
+
+    const newYear = date.getFullYear();
+    const newMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const newDay = String(date.getDate()).padStart(2, '0');
+
+    return `${newYear}-${newMonth}-${newDay}`;
   }
 
   /**
