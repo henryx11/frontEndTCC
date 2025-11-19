@@ -24,9 +24,6 @@ export class UserInfoService {
 
   constructor(private httpClient: HttpClient) {}
 
-  /**
-   * Busca informações do usuário logado
-   */
   getCurrentUserInfo(): Observable<UserInfo> {
     return this.httpClient.get<UserInfo>(`${this.apiUrl}/users/me`);
   }
@@ -36,9 +33,11 @@ export class UserInfoService {
    */
   getMedalImage(rank: string): string {
     const medals: { [key: string]: string } = {
+      'DIAMANTE': 'medalha_diamante.png',
+      'PLATINA': 'medalha_platina.png',
       'OURO': 'medalha_ouro.png',
-      'PRATA': 'medalha_prata.png',
-      'BRONZE': 'medalha_bronze.png'
+      'BRONZE': 'medalha_bronze.png',
+      'FERRO': 'medalha_ferro.png'
     };
     return medals[rank];
   }

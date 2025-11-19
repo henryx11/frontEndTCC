@@ -7,6 +7,7 @@ export interface Mission {
   title: string;
   description: string;
   value: number;
+  completed: boolean;
 }
 
 @Injectable({
