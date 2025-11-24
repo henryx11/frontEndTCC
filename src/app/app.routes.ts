@@ -11,8 +11,12 @@ import { CreateAccountComponent } from './pages/create-account/create-account.co
 import { AccountsListComponent } from './pages/accounts-list/accounts-list.component';
 import { AccountStatementComponent } from './pages/account-statement/account-statement.component';
 import { AddItemCreditcardBillComponent } from './pages/add-item-creditcard-bill/add-item-creditcard-bill.component';
-import {MissionsComponent} from './pages/missions/missions.component';
-import {AchivementsComponent} from './pages/achivements/achivements.component';
+import { MissionsComponent } from './pages/missions/missions.component';
+import { AchivementsComponent } from './pages/achivements/achivements.component';
+
+// ✅ NOVOS IMPORTS - Componentes de Recuperação de Senha
+import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 
 export const routes: Routes = [
   {
@@ -20,7 +24,11 @@ export const routes: Routes = [
     component: AuthLayoutComponent,
     children: [
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent }
+      { path: 'signup', component: SignupComponent },
+
+      // ✅ NOVAS ROTAS - Recuperação de Senha
+      { path: 'forgot-password', component: ForgotPasswordComponent },
+      { path: 'reset-password/:token', component: ResetPasswordComponent }
     ]
   },
 

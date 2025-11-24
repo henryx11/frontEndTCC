@@ -1,28 +1,32 @@
 <app-default-login-layout
-    title="Entre na sua conta"
-    primaryBtnText="Entre"
-    secondaryBtnText="Registre-se"
-    (submit)="submit()"
-    (navigate)="navigate()"
-    [disablePrimaryBtn]="!loginForm.valid"
+  title="Entre na sua conta"
+  primaryBtnText="Entre"
+  secondaryBtnText="Registre-se"
+  (submit)="submit()"
+  (navigate)="navigate()"
+  [disablePrimaryBtn]="!loginForm.valid"
 >
-    <form [formGroup]="loginForm">
-        <app-primary-imput
-        formControlName="email"
-            inputName="email"
-            type="email"
-            label="Email"
-            placeholder="seuemail@gmail.com"
-        >
-        </app-primary-imput>
-        <app-primary-imput
-        formControlName="password"
-            formName="password"
-            type="password"
-            label="Senha"
-            placeholder="Sua senha"
-        >
+  <form [formGroup]="loginForm">
+    <app-primary-imput
+      formControlName="email"
+      inputName="email"
+      type="email"
+      label="Email"
+      placeholder="seuemail@gmail.com"
+    >
     </app-primary-imput>
-    <span>Esqueci a senha</span>
-    </form>
+    <app-primary-imput
+      formControlName="password"
+      formName="password"
+      type="password"
+      label="Senha"
+      placeholder="Sua senha"
+    >
+    </app-primary-imput>
+
+    <!-- ✅ ATUALIZADO: Link clicável para recuperação de senha -->
+    <span (click)="navigateToForgotPassword()" class="forgot-password-link">
+        Esqueci a senha
+    </span>
+  </form>
 </app-default-login-layout>

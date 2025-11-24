@@ -46,10 +46,14 @@ export class LoginComponent {
         this.toastService.error(data?.error?.message);
       }
     });
-
   }
 
   navigate(){
     this.router.navigate(["/signup"])
+  }
+
+  // ✅ NOVO: Método para navegar para a página de recuperação de senha
+  navigateToForgotPassword(): void {
+    this.router.navigate(['/forgot-password']);
   }
 }
