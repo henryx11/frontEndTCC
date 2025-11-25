@@ -7,6 +7,7 @@ import { Receita } from '../../types/receita.type';
 import { ReceitaService } from '../../services/receita.service';
 import { CategoryService } from '../../services/category.service';
 import { ToastrService } from 'ngx-toastr';
+import { TransactionEventsService } from '../../services/transaction-events.service';
 
 @Component({
   selector: 'app-edit-receita-modal',
@@ -40,7 +41,8 @@ export class EditReceitaModalComponent implements OnInit {
     private formBuilder: FormBuilder,
     private receitaService: ReceitaService,
     private categoryService: CategoryService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private transactionEvents: TransactionEventsService
   ) {}
 
   ngOnInit(): void {
@@ -235,6 +237,7 @@ export class EditReceitaModalComponent implements OnInit {
     this.receitaService.updateReceita(this.receitaSelecionada.uuid, updateData).subscribe({
       next: (response) => {
         this.toastr.success('Receita atualizada com sucesso!');
+        this.transactionEvents.receitaEditada();
         this.receitaEditada.emit();
         this.fecharModal();
       },
@@ -263,6 +266,7 @@ export class EditReceitaModalComponent implements OnInit {
     this.receitaService.deleteReceita(this.receitaSelecionada.uuid).subscribe({
       next: () => {
         this.toastr.success('Receita excluída com sucesso!');
+        this.transactionEvents.receitaDeletada(); // ✅ ADICIONE ESTA LINHA
         this.receitaEditada.emit();
         this.fecharModal();
       },

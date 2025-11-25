@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { ChartsDataService, CategoryExpenseData, TimeSeriesData } from '../../services/charts-data.service';
 import { ToastrService } from 'ngx-toastr';
+import { TransactionEventsService } from '../../services/transaction-events.service';
+import { Subscription } from 'rxjs';
 
 // Registra todos os componentes do Chart.js
 Chart.register(...registerables);
@@ -34,14 +36,27 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   despesasPorCategoria: CategoryExpenseData[] = [];
   evolucaoTemporal?: TimeSeriesData;
   semDados = false;
+  private transactionSubscription?: Subscription;
 
   constructor(
     private chartsDataService: ChartsDataService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private transactionEvents: TransactionEventsService
   ) {}
 
   ngOnInit(): void {
     console.log('📊 Inicializando componente de gráficos...');
+
+    // Escuta eventos de mudanças em transações
+    this.transactionSubscription = this.transactionEvents.onTransactionChanged.subscribe(event => {
+      console.log('🔔 Evento recebido no ChartsComponent:', event.type);
+      console.log('🔄 Atualizando gráficos automaticamente...');
+
+      // Aguarda um pouco para garantir que o backend processou
+      setTimeout(() => {
+        this.atualizarGraficos();
+      }, 500);
+    });
   }
 
   ngAfterViewInit(): void {
@@ -68,9 +83,20 @@ export class ChartsComponent implements OnInit, AfterViewInit {
 
         if (data.length === 0) {
           console.log('⚠️ Sem dados de despesas');
-          this.semDados = true;
           this.loadingPie = false;
           this.loadingBar = false;
+
+          // ✅ NOVO: Destrói os gráficos de despesas se não há mais dados
+          if (this.pieChart) {
+            this.pieChart.destroy();
+            this.pieChart = undefined;
+            console.log('🗑️ Gráfico de pizza destruído - sem despesas');
+          }
+          if (this.barChart) {
+            this.barChart.destroy();
+            this.barChart = undefined;
+            console.log('🗑️ Gráfico de barras destruído - sem despesas');
+          }
         } else {
           console.log('🎨 Criando gráficos de pizza e barras...');
           // Aguarda um pouco mais para garantir que o DOM está pronto
@@ -79,12 +105,16 @@ export class ChartsComponent implements OnInit, AfterViewInit {
             this.criarGraficoBarras();
           }, 100);
         }
+
+        // ✅ Verifica se deve atualizar o estado geral
+        this.verificarEstadoGeral();
       },
       error: (error) => {
         console.error('❌ Erro ao carregar despesas por categoria:', error);
         this.toastr.error('Erro ao carregar dados de despesas');
         this.loadingPie = false;
         this.loadingBar = false;
+        this.verificarEstadoGeral();
       }
     });
 
@@ -94,16 +124,35 @@ export class ChartsComponent implements OnInit, AfterViewInit {
         console.log('✅ Evolução temporal carregada:', data);
         this.evolucaoTemporal = data;
 
-        console.log('🎨 Criando gráfico de linha...');
-        // Aguarda um pouco mais para garantir que o DOM está pronto
-        setTimeout(() => {
-          this.criarGraficoLinha();
-        }, 100);
+        // ✅ FIX: Verifica se há dados válidos (pelo menos uma receita ou despesa)
+        const temDados = data.receitas.some(v => v > 0) || data.despesas.some(v => v > 0);
+
+        if (!temDados) {
+          console.log('⚠️ Sem dados de receitas/despesas para evolução temporal');
+          this.loadingLine = false;
+
+          // ✅ NOVO: Destrói o gráfico de linha se não há dados
+          if (this.lineChart) {
+            this.lineChart.destroy();
+            this.lineChart = undefined;
+            console.log('🗑️ Gráfico de linha destruído - sem dados temporais');
+          }
+        } else {
+          console.log('🎨 Criando gráfico de linha...');
+          // Aguarda um pouco mais para garantir que o DOM está pronto
+          setTimeout(() => {
+            this.criarGraficoLinha();
+          }, 100);
+        }
+
+        // ✅ Verifica se deve atualizar o estado geral
+        this.verificarEstadoGeral();
       },
       error: (error) => {
         console.error('❌ Erro ao carregar evolução temporal:', error);
         this.toastr.error('Erro ao carregar evolução temporal');
         this.loadingLine = false;
+        this.verificarEstadoGeral();
       }
     });
   }
@@ -464,6 +513,55 @@ export class ChartsComponent implements OnInit, AfterViewInit {
   }
 
   /**
+   * Verifica o estado geral de carregamento e dados
+   * Atualiza as flags 'loading' e 'semDados'
+   */
+  /**
+   * Verifica o estado geral de carregamento e dados
+   * Atualiza as flags 'loading' e 'semDados'
+   */
+  private verificarEstadoGeral(): void {
+    // Se todos os loadings individuais terminaram
+    const todosCarregados = !this.loadingPie && !this.loadingLine && !this.loadingBar;
+
+    if (todosCarregados) {
+      this.loading = false;
+
+      // Verifica se não há nenhum dado em nenhum gráfico
+      const temDespesas = this.despesasPorCategoria.length > 0;
+      const temEvolucao = this.evolucaoTemporal &&
+        (this.evolucaoTemporal.receitas.some(v => v > 0) ||
+          this.evolucaoTemporal.despesas.some(v => v > 0));
+
+      this.semDados = !temDespesas && !temEvolucao;
+
+      // ✅ NOVO: Se não tem dados, destrói os gráficos existentes
+      if (this.semDados) {
+        if (this.pieChart) {
+          this.pieChart.destroy();
+          this.pieChart = undefined;
+        }
+        if (this.lineChart) {
+          this.lineChart.destroy();
+          this.lineChart = undefined;
+        }
+        if (this.barChart) {
+          this.barChart.destroy();
+          this.barChart = undefined;
+        }
+        console.log('🗑️ Gráficos destruídos - não há dados');
+      }
+
+      console.log('📊 Estado geral atualizado:', {
+        loading: this.loading,
+        semDados: this.semDados,
+        temDespesas,
+        temEvolucao
+      });
+    }
+  }
+
+  /**
    * Atualiza todos os gráficos (útil para refresh)
    */
   atualizarGraficos(): void {
@@ -472,10 +570,19 @@ export class ChartsComponent implements OnInit, AfterViewInit {
     this.loadingPie = true;
     this.loadingLine = true;
     this.loadingBar = true;
+    this.semDados = false; // ✅ Reset do estado semDados
     this.carregarDados();
   }
 
   ngOnDestroy(): void {
+    console.log('🧹 Limpando recursos do ChartsComponent...');
+
+    // Cancela a inscrição nos eventos
+    if (this.transactionSubscription) {
+      this.transactionSubscription.unsubscribe();
+      console.log('✅ Subscription cancelada');
+    }
+
     // Limpa os gráficos ao destruir o componente
     if (this.pieChart) this.pieChart.destroy();
     if (this.lineChart) this.lineChart.destroy();

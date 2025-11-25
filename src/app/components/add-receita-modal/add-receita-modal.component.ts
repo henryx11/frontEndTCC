@@ -6,6 +6,7 @@ import { Category } from '../../types/category.type';
 import { ReceitaService } from '../../services/receita.service';
 import { CategoryService } from '../../services/category.service';
 import { ToastrService } from 'ngx-toastr';
+import { TransactionEventsService } from '../../services/transaction-events.service'; // ✅ LINHA NOVA
 
 @Component({
   selector: 'app-add-receita-modal',
@@ -29,7 +30,8 @@ export class AddReceitaModalComponent implements OnInit {
     private formBuilder: FormBuilder,
     private receitaService: ReceitaService,
     private categoryService: CategoryService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private transactionEvents: TransactionEventsService // ✅ LINHA NOVA
   ) {}
 
   ngOnInit(): void {
@@ -38,16 +40,10 @@ export class AddReceitaModalComponent implements OnInit {
     this.inicializarFormulario();
   }
 
-  /**
-   * Filtra apenas contas ativas
-   */
   filtrarContasAtivas(): void {
     this.contasAtivas = this.contas.filter(conta => conta.active === 'ACTIVE');
   }
 
-  /**
-   * Carrega as categorias de receitas do backend
-   */
   carregarCategorias(): void {
     this.loadingCategorias = true;
     this.categoryService.getActiveIncomeCategories().subscribe({
@@ -63,9 +59,6 @@ export class AddReceitaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Inicializa o formulário com validações
-   */
   inicializarFormulario(): void {
     this.receitaForm = this.formBuilder.group({
       conta: ['', Validators.required],
@@ -76,9 +69,6 @@ export class AddReceitaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Adiciona a receita
-   */
   adicionarReceita(): void {
     if (this.receitaForm.invalid) {
       this.receitaForm.markAllAsTouched();
@@ -104,6 +94,9 @@ export class AddReceitaModalComponent implements OnInit {
     this.receitaService.createReceita(receitaData).subscribe({
       next: (response) => {
         this.toastr.success('Receita adicionada com sucesso!');
+
+        this.transactionEvents.receitaAdicionada(); // ✅ LINHA NOVA
+
         this.receitaAdicionada.emit();
         this.fecharModal();
       },
@@ -116,20 +109,13 @@ export class AddReceitaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Fecha o modal
-   */
   fecharModal(): void {
     this.fechar.emit();
   }
 
-  /**
-   * Ajusta a data compensando o problema de timezone do backend
-   * O backend interpreta como UTC, então adicionamos 1 dia
-   */
   private ajustarDataParaBackend(data: string): string {
     const date = new Date(data + 'T12:00:00');
-    date.setDate(date.getDate() + 1); // Adiciona 1 dia
+    date.setDate(date.getDate() + 1);
 
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');

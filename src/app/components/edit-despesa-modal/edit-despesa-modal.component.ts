@@ -9,6 +9,7 @@ import { Despesa } from '../../types/despesa.type';
 import { DespesaService } from '../../services/despesa.service';
 import { CategoryService } from '../../services/category.service';
 import { ToastrService } from 'ngx-toastr';
+import { TransactionEventsService } from '../../services/transaction-events.service';
 
 @Component({
   selector: 'app-edit-despesa-modal',
@@ -42,7 +43,8 @@ export class EditDespesaModalComponent implements OnInit {
     private formBuilder: FormBuilder,
     private despesaService: DespesaService,
     private categoryService: CategoryService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private transactionEvents: TransactionEventsService
   ) {}
 
   ngOnInit(): void {
@@ -237,6 +239,7 @@ export class EditDespesaModalComponent implements OnInit {
     this.despesaService.updateDespesa(this.despesaSelecionada.uuid, updateData).subscribe({
       next: (response) => {
         this.toastr.success('Despesa atualizada com sucesso!');
+        this.transactionEvents.despesaEditada();
         this.despesaEditada.emit();
         this.fecharModal();
       },
@@ -264,6 +267,7 @@ export class EditDespesaModalComponent implements OnInit {
     this.despesaService.deleteDespesa(this.despesaSelecionada.uuid).subscribe({
       next: () => {
         this.toastr.success('Despesa excluída com sucesso!');
+        this.transactionEvents.despesaDeletada();
         this.despesaEditada.emit();
         this.fecharModal();
       },

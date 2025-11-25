@@ -6,6 +6,7 @@ import { Category } from '../../types/category.type';
 import { DespesaService } from '../../services/despesa.service';
 import { CategoryService } from '../../services/category.service';
 import { ToastrService } from 'ngx-toastr';
+import { TransactionEventsService } from '../../services/transaction-events.service'; // ✅ LINHA NOVA
 
 @Component({
   selector: 'app-add-despesa-modal',
@@ -29,7 +30,8 @@ export class AddDespesaModalComponent implements OnInit {
     private formBuilder: FormBuilder,
     private despesaService: DespesaService,
     private categoryService: CategoryService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private transactionEvents: TransactionEventsService // ✅ LINHA NOVA
   ) {}
 
   ngOnInit(): void {
@@ -38,16 +40,10 @@ export class AddDespesaModalComponent implements OnInit {
     this.inicializarFormulario();
   }
 
-  /**
-   * Filtra apenas contas ativas
-   */
   filtrarContasAtivas(): void {
     this.contasAtivas = this.contas.filter(conta => conta.active === 'ACTIVE');
   }
 
-  /**
-   * Carrega as categorias de despesas do backend
-   */
   carregarCategorias(): void {
     this.loadingCategorias = true;
     this.categoryService.getActiveExpenseCategories().subscribe({
@@ -63,9 +59,6 @@ export class AddDespesaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Inicializa o formulário com validações
-   */
   inicializarFormulario(): void {
     const dataAtual = new Date().toISOString().split('T')[0];
 
@@ -78,9 +71,6 @@ export class AddDespesaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Adiciona a despesa
-   */
   adicionarDespesa(): void {
     if (this.despesaForm.invalid) {
       this.despesaForm.markAllAsTouched();
@@ -109,6 +99,9 @@ export class AddDespesaModalComponent implements OnInit {
       next: (response) => {
         console.log('✅ Despesa criada:', response);
         this.toastr.success('Despesa adicionada com sucesso!');
+
+        this.transactionEvents.despesaAdicionada(); // ✅ LINHA NOVA
+
         this.despesaAdicionada.emit();
         this.fecharModal();
       },
@@ -121,22 +114,11 @@ export class AddDespesaModalComponent implements OnInit {
     });
   }
 
-  /**
-   * Fecha o modal
-   */
   fecharModal(): void {
     this.fechar.emit();
   }
 
-  /**
-   * Ajusta a data compensando o problema de timezone do backend
-   * O backend interpreta como UTC, então adicionamos 1 dia
-   */
-  /**
-   * Formata a data para o backend
-   */
   private ajustarDataParaBackend(data: string): string {
-    // Apenas retorna a data no formato correto, sem ajuste
     return data;
   }
 }
