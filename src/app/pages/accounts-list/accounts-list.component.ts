@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountService } from '../../services/account.service';
+import { AccountEventsService } from '../../services/account-events.service'; // ✅ NOVO
 import { Account } from '../../types/account.type';
 import { ToastrService } from 'ngx-toastr';
 import { TransferModalComponent } from '../../components/transfer-modal/transfer-modal.component';
@@ -27,6 +28,7 @@ export class AccountsListComponent implements OnInit {
 
   constructor(
     private accountService: AccountService,
+    private accountEvents: AccountEventsService, // ✅ NOVO
     private router: Router,
     private toastr: ToastrService
   ) {}
@@ -61,7 +63,6 @@ export class AccountsListComponent implements OnInit {
       this.contaSelecionada = null;
     } else {
       this.contaSelecionada = contaId;
-      // Cancela edição ao trocar de conta
       this.cancelarEdicao();
     }
   }
@@ -130,6 +131,9 @@ export class AccountsListComponent implements OnInit {
           this.toastr.success(`Conta ${isAtiva ? 'desativada' : 'ativada'} com sucesso!`);
           this.carregarContas();
           this.fecharDetalhes();
+
+          // ✅ NOVO: Notifica outros componentes que uma conta foi modificada
+          this.accountEvents.notifyAccountChanged();
         },
         error: (error) => {
           console.error(`Erro ao ${acao} conta:`, error);
@@ -156,7 +160,6 @@ export class AccountsListComponent implements OnInit {
       return;
     }
 
-    // Verifica se existem outras contas ativas para transferir
     const contasAtivasDisponiveis = this.contas.filter(
       c => c.uuid !== conta.uuid && c.active === 'ACTIVE'
     );
@@ -188,13 +191,13 @@ export class AccountsListComponent implements OnInit {
     this.modalTransferenciaAberto = false;
     this.carregarContas();
     this.fecharDetalhes();
+
+    // ✅ NOVO: Notifica dashboard sobre a transferência
+    this.accountEvents.notifyAccountChanged();
   }
 
   // ========== MÉTODOS DE EDIÇÃO INLINE ==========
 
-  /**
-   * Inicia a edição do nome da conta
-   */
   iniciarEdicaoNome(): void {
     const conta = this.getContaSelecionada();
     if (conta) {
@@ -203,17 +206,11 @@ export class AccountsListComponent implements OnInit {
     }
   }
 
-  /**
-   * Cancela a edição do nome
-   */
   cancelarEdicao(): void {
     this.editandoNome = false;
     this.nomeEditado = '';
   }
 
-  /**
-   * Salva o novo nome da conta
-   */
   salvarNome(): void {
     const conta = this.getContaSelecionada();
 
@@ -222,7 +219,6 @@ export class AccountsListComponent implements OnInit {
       return;
     }
 
-    // Validações
     const nomeFormatado = this.nomeEditado.trim();
 
     if (!nomeFormatado) {
@@ -235,7 +231,6 @@ export class AccountsListComponent implements OnInit {
       return;
     }
 
-    // Cria uma cópia da conta com o novo nome
     const contaAtualizada: Account = {
       ...conta,
       name: nomeFormatado
@@ -245,7 +240,6 @@ export class AccountsListComponent implements OnInit {
 
     this.accountService.updateAccount(contaAtualizada).subscribe({
       next: (response) => {
-        // Atualiza a conta na lista local
         const index = this.contas.findIndex(c => c.uuid === conta.uuid);
         if (index !== -1) {
           this.contas[index] = response;
@@ -265,9 +259,6 @@ export class AccountsListComponent implements OnInit {
     });
   }
 
-  /**
-   * Manipula teclas no campo de edição
-   */
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();

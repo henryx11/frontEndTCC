@@ -1,3 +1,5 @@
+// src/app/services/receita.service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -20,11 +22,15 @@ export class ReceitaService {
   }
 
   /**
-   * Busca todas as receitas do usuário
+   * ✅ CORRIGIDO: Busca todas as receitas do usuário
+   * Agora aceita receitas com active === 'ACTIVE' OU active === null
+   * (null geralmente significa que a receita pertence a uma conta reativada)
    */
   getAllReceitas(): Observable<Receita[]> {
     return this.httpClient.get<Receita[]>(`${this.apiUrl}/reciphe`).pipe(
-      map(receitas => receitas.filter(r => r.active === 'ACTIVE'))
+      map(receitas => receitas.filter(r =>
+        r.active === 'ACTIVE' || r.active === null || r.active === undefined
+      ))
     );
   }
 
@@ -54,7 +60,8 @@ export class ReceitaService {
   }
 
   /**
-   * Busca receitas por período de datas
+   * ✅ CORRIGIDO: Busca receitas por período de datas
+   * Agora aceita receitas com active === 'ACTIVE' OU active === null
    */
   buscarReceitasPorPeriodo(dataInicio: string, dataFim: string): Observable<Receita[]> {
     const params = new HttpParams()
@@ -63,7 +70,9 @@ export class ReceitaService {
       .set('toDate', dataFim);
 
     return this.httpClient.get<Receita[]>(`${this.apiUrl}/reciphe/search`, { params }).pipe(
-      map(receitas => receitas.filter(r => r.active === 'ACTIVE'))
+      map(receitas => receitas.filter(r =>
+        r.active === 'ACTIVE' || r.active === null || r.active === undefined
+      ))
     );
   }
 
@@ -74,17 +83,14 @@ export class ReceitaService {
     if (!date) return this.getCurrentDate();
 
     try {
-      // Se a data já está no formato YYYY-MM-DD, retorna diretamente
       if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
         return date;
       }
 
-      // Se vier com hora (ex: 2025-10-16T00:00:00), extrai apenas a data
       if (date.includes('T')) {
         return date.split('T')[0];
       }
 
-      // Fallback: força timezone local ao criar Date
       const dateObj = new Date(date + 'T12:00:00');
       const year = dateObj.getFullYear();
       const month = String(dateObj.getMonth() + 1).padStart(2, '0');
