@@ -6,7 +6,7 @@ import { Category } from '../../types/category.type';
 import { DespesaService } from '../../services/despesa.service';
 import { CategoryService } from '../../services/category.service';
 import { ToastrService } from 'ngx-toastr';
-import { TransactionEventsService } from '../../services/transaction-events.service'; // ✅ LINHA NOVA
+import { TransactionEventsService } from '../../services/transaction-events.service';
 
 @Component({
   selector: 'app-add-despesa-modal',
@@ -31,7 +31,7 @@ export class AddDespesaModalComponent implements OnInit {
     private despesaService: DespesaService,
     private categoryService: CategoryService,
     private toastr: ToastrService,
-    private transactionEvents: TransactionEventsService // ✅ LINHA NOVA
+    private transactionEvents: TransactionEventsService
   ) {}
 
   ngOnInit(): void {
@@ -60,14 +60,12 @@ export class AddDespesaModalComponent implements OnInit {
   }
 
   inicializarFormulario(): void {
-    const dataAtual = new Date().toISOString().split('T')[0];
-
     this.despesaForm = this.formBuilder.group({
       conta: ['', Validators.required],
       valor: ['', [Validators.required, Validators.min(0.01)]],
       categoria: ['', Validators.required],
       descricao: ['', [Validators.required, Validators.minLength(3)]],
-      data: [dataAtual, Validators.required]
+      data: [this.despesaService.getCurrentDate(), Validators.required]
     });
   }
 
@@ -82,7 +80,7 @@ export class AddDespesaModalComponent implements OnInit {
     const despesaData = {
       value: parseFloat(formValue.valor),
       description: formValue.descricao,
-      dateRegistration: this.ajustarDataParaBackend(formValue.data),
+      dateRegistration: formValue.data,
       accounts: {
         uuid: formValue.conta
       },
@@ -100,7 +98,7 @@ export class AddDespesaModalComponent implements OnInit {
         console.log('✅ Despesa criada:', response);
         this.toastr.success('Despesa adicionada com sucesso!');
 
-        this.transactionEvents.despesaAdicionada(); // ✅ LINHA NOVA
+        this.transactionEvents.despesaAdicionada();
 
         this.despesaAdicionada.emit();
         this.fecharModal();
@@ -116,9 +114,5 @@ export class AddDespesaModalComponent implements OnInit {
 
   fecharModal(): void {
     this.fechar.emit();
-  }
-
-  private ajustarDataParaBackend(data: string): string {
-    return data;
   }
 }
