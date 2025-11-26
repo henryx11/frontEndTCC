@@ -3,12 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Account } from '../types/account.type';
 import { CreateAccountRequest } from '../types/create-account-request.type';
+import { AccountType } from '../types/account-type.type'; // ✅ NOVO IMPORT
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
   private readonly apiUrl = 'http://26.59.168.146:8090/accounts';
+  private readonly typeUrl = 'http://26.59.168.146:8090/type'; // ✅ NOVO
 
   constructor(private httpClient: HttpClient) {}
 
@@ -29,6 +31,13 @@ export class AccountService {
 
   getUserAccounts(): Observable<Account[]> {
     return this.httpClient.get<Account[]>(`${this.apiUrl}`);
+  }
+
+  /**
+   * ✅ NOVO: Busca os tipos de contas disponíveis
+   */
+  getAccountTypes(): Observable<AccountType[]> {
+    return this.httpClient.get<AccountType[]>(this.typeUrl);
   }
 
   // Atualizar conta

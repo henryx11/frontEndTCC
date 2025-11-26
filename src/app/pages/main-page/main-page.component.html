@@ -5,7 +5,8 @@
     <div class="card saldo">
       <p class="title">Saldo Atual</p>
       <p class="value" *ngIf="!loadingSaldo" [class.negative]="saldoTotal < 0">
-        {{ saldoTotal >= 0 ? '+' : '' }} R$ {{ formatarMoeda(Math.abs(saldoTotal)) }}
+        {{ saldoTotal >= 0 ? '+' : '-' }} R$ {{ formatarMoeda(Math.abs(saldoTotal)) }}
+        <!-- ✅ MUDOU: Agora mostra '-' quando negativo -->
       </p>
       <p class="value loading" *ngIf="loadingSaldo">
         Carregando...

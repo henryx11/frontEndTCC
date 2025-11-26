@@ -1,94 +1,98 @@
 @import "../../../styles/variables.scss";
 
-main{
+main {
+  display: flex;
+  flex-direction: column;      // coluna em todas as telas
+  align-items: center;         // centraliza horizontalmente
+  justify-content: flex-start; // começa do topo
+  min-height: 100vh;           // ocupa no mínimo a altura da tela
+  padding: 32px 16px;          // respiro lateral pra mobile
+  box-sizing: border-box;
+}
+
+section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ainda não estamos usando essa seção, então mantemos escondida */
+.main-section {
+  display: none;
+  gap: 8px;
+  background-color: $gray-bg;
+}
+
+.form-section {
+  width: 100%;
+  max-width: 430px;   // limite máximo pro card
+  padding: 0 8px;
+
+  img {
+    margin-bottom: 24px;
+    max-width: 260px;
+    width: 100%;
+    height: auto;
+  }
+
+  h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .btn-wrapper {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    width: 100%;
+    gap: 24px;
 
-    section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center; 
-    }
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
 
-    .main-section{
-        gap: 8px;
+      font-size: 14px;
+      color: $gray-bg;
+      font-weight: 400;
+      text-transform: uppercase;
 
-        flex-grow: 1;
+      div {
+        width: 100%;
+        min-width: 80px;
+        height: 2px;
         background-color: $gray-bg;
+      }
     }
 
-    .form-section {
-        flex-grow: 0.3;
-        padding: 0 35px;
+    button {
+      width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      padding: 12px 24px;
+      cursor: pointer;
 
-        img{
-            margin-bottom: 30px;
+      &.btn-primary {
+        background-color: $primary-color;
+        color: white;
+
+        &:disabled {
+          opacity: 0.6;
         }
-        
-        h2{
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 45px;
-        }
+      }
 
-        .btn-wrapper{
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            gap: 30px;
-
-            .divider{
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 20px;
-
-                font-size: 14px;
-                color: $gray-bg;
-                font-weight: 400;
-                text-transform: uppercase;
-
-                div{
-                    width: 100%;
-                    min-width: 100px;
-                    height: 2px;
-                    background-color: $gray-bg;
-                }
-            }
-
-            button {
-                width: 100%;
-                border-radius: 8px;
-                font-size: 16px;
-                font-weight: 500;
-                border: none;
-                background: transparent;
-                padding: 12px 24px;
-                cursor: pointer;
-
-                
-    
-                &.btn-primary{
-                    background-color: $primary-color;
-                    color: white;
-
-                    &:disabled {
-                        opacity: 0.6;
-                    }
-    
-                }
-    
-                &.btn-secondary{
-                    border: 1px solid $primary-color;
-                    color: $primary-color;
-                }
-            }
-        }
+      &.btn-secondary {
+        border: 1px solid $primary-color;
+        color: $primary-color;
+      }
     }
+  }
 }

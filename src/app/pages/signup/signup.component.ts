@@ -12,7 +12,6 @@ interface signupForm {
   number: FormControl,
   password: FormControl,
   passwordConfirm: FormControl
-
 }
 
 @Component({
@@ -26,7 +25,7 @@ interface signupForm {
     LoginService
   ],
   templateUrl: './signup.component.html',
-  styleUrls: ['./signup.component.scss']
+  styleUrl: './signup.component.scss'  // ✅ CORRIGIDO: singular
 })
 export class SignupComponent {
   signupForm!: FormGroup<signupForm>;
@@ -62,12 +61,9 @@ export class SignupComponent {
       next: (data: any) => this.toastService.success(data.message),
       error: (data: any) => this.toastService.error(data?.error?.message),
     });
-
-
   }
+
   navigate() {
     this.router.navigate(['/login']);
   }
-
-
 }

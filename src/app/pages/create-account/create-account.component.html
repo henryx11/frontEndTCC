@@ -37,7 +37,7 @@
       <select id="accountType" formControlName="accountType">
         <option value="">Selecione um tipo</option>
         <option *ngFor="let type of accountTypes" [value]="type.uuid">
-          {{ type.name }}
+          {{ type.description }}
         </option>
       </select>
     </div>
